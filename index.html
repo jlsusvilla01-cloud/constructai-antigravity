@@ -108,6 +108,7 @@ const PHASES=[
 
 let A={
   theme:'light',view:'landing',user:null,project:null,dbProjects:null,dashTab:'overview',
+  authMode:'signin',
   workers:[
     {id:'W-001',n:'Ramon Diaz',r:'Lead Mason',s:'In',t:'06:58 AM',p:'https://i.pravatar.cc/150?u=1'},
     {id:'W-002',n:'Luis Reyes',r:'Foreman',s:'In',t:'06:45 AM',p:'https://i.pravatar.cc/150?u=2'},
@@ -293,21 +294,40 @@ function LANDING(){
 }
 
 function AUTH(){
-  return`<div style="min-height:500px;display:flex;align-items:center;justify-content:center;padding:40px 20px">
-    <div style="width:100%;max-width:360px">
+  const isUp = A.authMode==='signup';
+  return`<div style="min-height:600px;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+    <div style="width:100%;max-width:380px">
       <div style="text-align:center;margin-bottom:28px">
         <img src="logo.png" style="width:52px;height:52px;border-radius:14px;object-fit:cover;margin:0 auto 14px;display:block">
-        <div style="font-size:22px;font-weight:700;margin-bottom:4px;color:var(--text)">Sign in</div>
-        <div style="font-size:13px;color:var(--text3)">Sign in with your contractor account</div>
+        <div style="font-size:22px;font-weight:700;margin-bottom:4px;color:var(--text)">${isUp?'Create Account':'Sign In'}</div>
+        <div style="font-size:13px;color:var(--text3)">${isUp?'Join the ConstructAI ecosystem':'Sign in with your contractor account'}</div>
       </div>
-      <div class="card" style="padding:24px">
+      <div class="card" style="padding:28px">
+        ${isUp?`<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Full Name</div><input type="text" id="an" placeholder="Juan dela Cruz"></div>`:''}
         <div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Email</div><input type="email" id="ae" placeholder="you@company.com"></div>
-        <div style="margin-bottom:16px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Password</div><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
-        <div id="login-err" style="color:${RD};font-size:13px;margin-bottom:10px;display:none"></div>
-        <button id="login-btn" onclick="doLogin()" style="width:100%;background:${BL};color:#fff;border:none;border-radius:20px;padding:12px;font-size:15px;font-weight:500">Sign In</button>
+        <div style="margin-bottom:16px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Password</div><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')${isUp?'doSignUp()':'doLogin()'}"></div>
+        
+        <div id="login-err" style="color:${RD};font-size:13px;margin-bottom:12px;display:none;background:${RD}10;padding:10px;border-radius:8px"></div>
+        
+        <button id="login-btn" onclick="${isUp?'doSignUp()':'doLogin()'}" style="width:100%;background:${BL};color:#fff;border:none;border-radius:20px;padding:12px;font-size:15px;font-weight:600;margin-bottom:16px">${isUp?'Create Free Account':'Sign In'}</button>
+        
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;color:var(--text4)">
+          <div style="flex:1;height:0.5px;background:var(--sep)"></div>
+          <span style="font-size:11px;font-weight:600;text-transform:uppercase">or</span>
+          <div style="flex:1;height:0.5px;background:var(--sep)"></div>
+        </div>
+        
+        <button onclick="signInWithGoogle()" style="width:100%;background:var(--card);border:0.5px solid var(--sep);border-radius:20px;padding:10px;font-size:14px;font-weight:500;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:10px">
+          <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/><path fill="none" d="M0 0h48v48H0z"/></svg>
+          Continue with Google
+        </button>
       </div>
-      <div style="text-align:center;margin-top:14px">
-        <button onclick="goDashDemo()" style="font-size:13px;color:${BL};background:none;border:none">Skip — Demo Mode</button>
+      <div style="text-align:center;margin-top:20px;font-size:14px">
+        <span style="color:var(--text3)">${isUp?'Already have an account?':'Don\'t have an account?'}</span>
+        <button onclick="ss({authMode:'${isUp?'signin':'signup'}'})" style="color:${BL};background:none;border:none;font-weight:600;margin-left:5px">${isUp?'Sign In':'Register'}</button>
+      </div>
+      <div style="text-align:center;margin-top:10px">
+        <button onclick="goDashDemo()" style="font-size:12px;color:var(--text4);background:none;border:none">Skip — Developer Demo Mode</button>
       </div>
     </div>
   </div>`;
@@ -1257,9 +1277,30 @@ async function doLogin(){
     if(btn){btn.textContent='Sign In';btn.disabled=false;}
     return;
   }
-  A.user={name:data.user.user_metadata?.full_name||e.split('@')[0],email:e,id:data.user.id};
-  await loadUserProjects();
-  ss({view:'projects'});
+}
+
+async function doSignUp(){
+  const e=document.getElementById('ae')?.value||'';
+  const p=document.getElementById('ap')?.value||'';
+  const n=document.getElementById('an')?.value||'';
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');
+  if(err){err.textContent='';err.style.display='none';}
+  if(!e||!p){if(err){err.textContent='Please enter email and password.';err.style.display='block';}return;}
+  if(btn){btn.textContent='Creating account…';btn.disabled=true;}
+  const{data,error}=await SB.auth.signUp({email:e,password:p,options:{data:{full_name:n||e.split('@')[0]}}});
+  if(error){
+    if(err){err.textContent=error.message;err.style.display='block';}
+    if(btn){btn.textContent='Create Account';btn.disabled=false;}
+    return;
+  }
+  alert('Success! Please check your email for a confirmation link.');
+  ss({authMode:'signin'});
+}
+
+async function signInWithGoogle(){
+  const{data,error}=await SB.auth.signInWithOAuth({provider:'google',options:{redirectTo:window.location.origin}});
+  if(error) alert('Error: '+error.message);
 }
 
 async function doSignOut(){
@@ -1304,6 +1345,14 @@ async function loadProjectData(projectId){
 }
 
 async function initApp(){
+  SB.auth.onAuthStateChange(async(ev,s)=>{
+    if(s){
+      A.user={name:s.user.user_metadata?.full_name||s.user.email.split('@')[0],email:s.user.email,id:s.user.id};
+      await loadUserProjects();
+      if(A.view==='auth') A.view='projects';
+    }else{ A.user=null; }
+    render();
+  });
   try{
     const{data:{session}}=await SB.auth.getSession();
     if(session){
