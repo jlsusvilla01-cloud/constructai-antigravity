@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ConstructAI PH</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#F2F2F7;--bg-overlay:rgba(242,242,247,0.88);--card:#fff;--card2:#F2F2F7;--card3:#E5E5EA;--text:#000;--text2:#3c3c43cc;--text3:#3c3c4399;--text4:#3c3c432e;--sep:rgba(60,60,67,.18);--nav:rgba(255,255,255,.92);--sh:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);--input:#F2F2F7;--brand:#007AFF}
+.dark{--bg:#000;--bg-overlay:rgba(0,0,0,0.85);--card:#1c1c1e;--card2:#2c2c2e;--card3:#3a3a3c;--text:#fff;--text2:rgba(235,235,245,.8);--text3:rgba(235,235,245,.6);--text4:rgba(235,235,245,.3);--sep:rgba(84,84,88,.65);--nav:rgba(28,28,30,.95);--sh:none;--input:#2c2c2e;--brand:#007AFF}
+.solana{--bg:#10141f;--bg-overlay:rgba(16,20,31,0.88);--card:#1a2034;--card2:#222841;--card3:#2b3252;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,255,163,.25);--nav:rgba(26,32,52,.95);--sh:none;--input:#222841;--brand:#00FFA3}
+.blueprint{--bg:#001d3d;--bg-overlay:rgba(0,29,61,0.88);--card:#003566;--card2:#004080;--card3:#00509e;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,168,232,.3);--nav:rgba(0,53,102,.95);--sh:none;--input:#004080;--brand:#00a8e8}
+html{background:url('bg.png') no-repeat center center fixed;background-size:cover}
+body{min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-overlay);color:var(--text);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--sep);border-radius:3px}
+.card{background:var(--card);border:0.5px solid var(--sep);border-radius:14px;overflow:hidden;box-shadow:var(--sh)}
+.card2{background:var(--card2);border-radius:12px;padding:16px}
+.rh:hover{background:var(--card2)!important;transition:background .15s}
+input,textarea,select{font-family:inherit;background:var(--input);border:0.5px solid var(--sep);border-radius:9px;padding:9px 12px;font-size:14px;outline:none;width:100%;color:var(--text);transition:border .2s}
+input:focus,textarea:focus,select:focus{border-color:#007AFF}
+button{cursor:pointer;font-family:inherit;transition:all .15s}
+button:active{transform:scale(0.97)}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
+@keyframes scan{0%{top:0}50%{top:220px}100%{top:0}}
+.fade{animation:fadeUp .3s ease forwards}
+.tw{overflow:hidden;white-space:nowrap}
+.ti{display:inline-flex;gap:48px;animation:ticker 55s linear infinite}
+.ti:hover{animation-play-state:paused}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+// ─── Supabase client ──────────────────────────────────────────────────────────
+// Replace these two values with your own from supabase.com → Project Settings → API
+const SB_URL = 'https://demo.supabase.co';
+const SB_KEY = 'demo_anon_key';
+const SB = supabase.createClient(SB_URL, SB_KEY);
+// ─────────────────────────────────────────────────────────────────────────────
+
+const BL='#007AFF',GR='#34C759',OR='#FF9500',RD='#FF3B30',PU='#AF52DE',IN='#5856D6',TE='#5AC8FA';
+let _dl = [];
+try { _dl = JSON.parse(localStorage.getItem('dl_cache')||'[]'); } catch(e){}
+if(_dl.length===0){
+  _dl=[
+    {d:'Mar 26, 2026',w:'Sunny, 32°C',h:34,e:2,p:'Slab preparation complete. All rebar tied and inspected by structural engineer.',v:['Delivered 120 bags cement'],n:'No incidents.',c:BL,s:true},
+    {d:'Mar 25, 2026',w:'Morning Rain, 29°C',h:32,e:2,p:'Delayed start due to rain. Continued CHB laying at East wing after 10 AM.',v:['Delivered 2,000 CHB'],n:'1 worker sent home (fever)',c:BL,s:true}
+  ];
+  localStorage.setItem('dl_cache',JSON.stringify(_dl));
+}
+window.addEventListener('online',()=>{
+  let c=false; _dl.forEach(r=>{if(!r.s){r.s=true;c=true;}});
+  if(c){localStorage.setItem('dl_cache',JSON.stringify(_dl)); render();}
+});
+const fmt=n=>'₱'+Number(n).toLocaleString();
+const fmtK=n=>n>=1e6?'₱'+(n/1e6).toFixed(2)+'M':'₱'+(n/1e3).toFixed(0)+'k';
+const cl=(v,a,b)=>Math.min(b,Math.max(a,v));
+
+const MKT=[
+  {name:'Cement (Portland Type 1)',unit:'40kg bag',price:285,change:+1.2,trend:'up',risk:'Med',supplier:'Holcim / Republic Cement',note:'PSA: cement index -1.5% YoY. Stable for now. Buy 100+ bags in bulk.'},
+  {name:'Rebar 12mm Grade 40',unit:'kg',price:68,change:-3.0,trend:'down',risk:'Low',supplier:'Pag-asa Steel / NatSteel',note:'PSA: structural steel -3.0% YoY. Good time to lock in pricing before structural phase.'},
+  {name:'Rebar 16mm Grade 40',unit:'kg',price:70,change:-2.8,trend:'down',risk:'Low',supplier:'Pag-asa Steel',note:'Prices declining YoY. Secure PO now before structural phase.'},
+  {name:'Sand (River Wash)',unit:'m³',price:520,change:+0.2,trend:'stable',risk:'Low',supplier:'Rizal Province suppliers',note:'PSA: sand & gravel +0.2%. Negligible. Source direct from Rizal for best rates.'},
+  {name:'Gravel ¾"',unit:'m³',price:680,change:+0.2,trend:'stable',risk:'Low',supplier:'Rizal Province',note:'Stable. Combine delivery with sand orders to save on hauling cost.'},
+  {name:'CHB 6" Solid',unit:'piece',price:18,change:0,trend:'stable',risk:'Low',supplier:'Dynasty Hardware / Local',note:'Flat pricing YoY. Buy from local manufacturer for best rates at 5,000+ pcs.'},
+  {name:'Plywood ¾" Marine',unit:'sheet',price:1450,change:+0.3,trend:'up',risk:'Med',supplier:'Yuchengco Timber',note:'PSA: plywood +0.3% YoY. Minor increase. Order ahead for formworks.'},
+  {name:'Long Span Roofing GA26',unit:'lin.m',price:215,change:+1.5,trend:'up',risk:'Med',supplier:'Union Galvasteel / BlueScope',note:'Painting works index +0.6%. Color-coated adds 15-20%. Lock in orders early.'},
+  {name:'PVC Pipe 4" (Sanimold)',unit:'length',price:320,change:0,trend:'stable',risk:'Low',supplier:'Neltex / Moldex',note:'Stable pricing. Short lead time — order per project phase only.'},
+  {name:'Paint Elastomeric Ext.',unit:'4L can',price:680,change:+0.6,trend:'up',risk:'Med',supplier:'Asian Paints / Boysen',note:'PSA: painting index +0.6%. Buy per estimate plus 10% buffer.'},
+  {name:'Steel Sheet GI #26',unit:'sheet',price:890,change:-1.0,trend:'down',risk:'Low',supplier:'Steel Asia',note:'Hardware & steel casement index -0.1%. Market softening on steel.'},
+  {name:'Ready-Mix Concrete',unit:'m³',price:5402,change:+0.5,trend:'up',risk:'Med',supplier:'Holcim ReadyMix',note:'DPWH market rate ₱5,402/m³. Confirm lead time — 3-day advance order required.'},
+];
+
+const NEWS_DATA=[
+  {date:'Mar 25, 2025',tag:'PRICES',title:'PSA: NCR Construction Materials Price Index up 0.8% YoY — December 2025',body:'The annual growth rate of the CMWPI in NCR remained at 0.8% in December. Structural steel posted the largest annual decline at 3.0%, while sand & gravel and painting works recorded small increases. Annual average growth rate slowed to 0.1% for 2025.',source:'Philippine Statistics Authority',color:BL,urgent:false},
+  {date:'Mar 22, 2025',tag:'POLICY',title:'DPWH Orders Up to 75% Cut in Government Construction Material Costs',body:'Public Works Secretary Dizon signed an order aligning government project material costs with current market prices. Rebar Gr.40 market: ₱36/kg vs previous govt rate of ₱52/kg. Cement: ₱213/bag vs ₱236. Expected ₱60B in savings for 2026 budget.',source:'Philippine Daily Inquirer',color:GR,urgent:false},
+  {date:'Mar 20, 2025',tag:'ALERT',title:'PAGASA: La Niña Conditions May Return Q2 2025 — Extended Rainy Season',body:'PAGASA warns of potential La Niña from Q2 2025. Contractors should add 15–20% weather buffer to earthworks and roofing schedules. Stock up on waterproofing materials before June to avoid supply constraints during peak rainy season.',source:'PAGASA',color:RD,urgent:true},
+  {date:'Mar 18, 2025',tag:'STEEL',title:'Structural Steel Prices Continue Declining — PSA Index Down 3.0% YoY',body:'Following a 9.0% average increase in 2024, structural steel prices reversed with a 2.0% average annual decline in 2025. Contractors procuring for structural works should act now to lock in favorable rates before potential supply disruptions in Q2.',source:'PSA / BusinessWorld',color:OR,urgent:false},
+  {date:'Mar 15, 2025',tag:'PERMIT',title:'Quezon City CPDO Now Accepting Online Building Permit Applications',body:'QC CPDO has expanded its e-permit system covering new construction and renovation. Digital submission reduces document turnaround by 40%. Required: architectural plans, structural plans, soil boring report, and site development plan.',source:'Quezon City Government',color:IN,urgent:false},
+  {date:'Mar 12, 2025',tag:'LABOR',title:'DOLE Sets New NCR Minimum Daily Wage — Contractors Must Update Payroll',body:'New NCR minimum wage effective March 2025: ₱645/day for non-agricultural workers. Contractors with direct-hire labor must update payroll immediately. Non-compliance subject to DOLE Labor Inspectorate enforcement and penalties.',source:'DOLE Philippines',color:PU,urgent:true},
+  {date:'Mar 10, 2025',tag:'MARKET',title:'Holcim Philippines Confirms Stable Cement Prices for Q2 2025',body:'Holcim confirmed no planned price increases for cement in Q2. Current retail: ₱285–₱295 per 40kg bag in NCR. Contractors can plan BOQ without cement price escalation clauses for the next quarter.',source:'Holcim Philippines',color:TE,urgent:false},
+  {date:'Mar 8, 2025',tag:'SAFETY',title:'DOLE Issues 47 Stop-Work Orders in NCR in February — OSH Violations',body:'DOLE Labor Inspectorate issued stop-work orders to 47 construction sites in NCR in February 2025 for R.A. 11058 violations. Most common: missing PPE, no CSHP posted, inadequate scaffolding tagging. Administrative fines up to ₱100,000 per day.',source:'DOLE Philippines',color:RD,urgent:true},
+];
+
+const MOCK_PROJECTS=[
+  {id:1,name:'Santos Residence',client:'Maria Santos',location:'BGC, Taguig',value:4250000,spent:1240000,billed:980000,received:750000,pct:42,phase:'Structural Works',cashGap:230000,openPunch:4,margin:13.4,daysLeft:89,health:'good'},
+  {id:2,name:'Reyes Commercial Bldg',client:'Roberto Reyes',location:'Quezon City',value:12800000,spent:7680000,billed:10240000,received:9260000,pct:78,phase:'Finishing Works',cashGap:980000,openPunch:12,margin:8.2,daysLeft:22,health:'watch'},
+  {id:3,name:'Lim Townhouse',client:'Daphne Lim',location:'Parañaque',value:8400000,spent:8400000,billed:8400000,received:8400000,pct:100,phase:'Warranty Period',cashGap:0,openPunch:0,margin:14.8,daysLeft:0,health:'good'},
+  {id:4,name:'Cruz Warehouse',client:'Jose Cruz',location:'Laguna',value:6200000,spent:620000,billed:620000,received:620000,pct:10,phase:'Earthworks',cashGap:0,openPunch:0,margin:11.0,daysLeft:145,health:'good'},
+  {id:5,name:'Tan Villa Reno',client:'Alice Tan',location:'Alabang',value:2100000,spent:1890000,billed:1680000,received:1260000,pct:90,phase:'Punch List',cashGap:420000,openPunch:8,margin:6.1,daysLeft:8,health:'critical'},
+];
+const PHASES=[
+  {name:'Pre-Construction & Permits',pct:100,status:'done',date:'Feb 1 – Feb 14'},
+  {name:'Earthworks & Foundation',pct:100,status:'done',date:'Feb 15 – Mar 7'},
+  {name:'Structural Works',pct:65,status:'active',date:'Mar 8 – Apr 18'},
+  {name:'Roofing & Waterproofing',pct:0,status:'pending',date:'Apr 19 – May 2'},
+  {name:'MEP Rough-in',pct:0,status:'pending',date:'May 3 – May 16'},
+  {name:'Finishing Works',pct:0,status:'pending',date:'May 17 – Jun 13'},
+  {name:'Turnover & Inspection',pct:0,status:'pending',date:'Jun 14 – Jun 20'},
+];
+
+let A={
+  theme:'light',view:'landing',user:null,project:null,dbProjects:null,dashTab:'overview',
+  workers:[
+    {id:'W-001',n:'Ramon Diaz',r:'Lead Mason',s:'In',t:'06:58 AM',p:'https://i.pravatar.cc/150?u=1'},
+    {id:'W-002',n:'Luis Reyes',r:'Foreman',s:'In',t:'06:45 AM',p:'https://i.pravatar.cc/150?u=2'},
+    {id:'W-003',n:'Carlos Tan',r:'Electrician',s:'Out',t:'Yesterday',p:'https://i.pravatar.cc/150?u=3'},
+    {id:'W-004',n:'Mike Santos',r:'Laborer',s:'In',t:'07:12 AM',p:'https://i.pravatar.cc/150?u=4'},
+  ],
+  scanningQR:false,
+  punches:[
+    {id:1,area:'Kitchen',item:'Grout missing on floor tiles (3 spots)',trade:'Tiles',priority:'High',status:'Open',due:'Apr 22'},
+    {id:2,area:'Master BR',item:'Paint peeling at ceiling cornice',trade:'Painter',priority:'Med',status:'Open',due:'Apr 25'},
+    {id:3,area:'CR 1',item:'Exhaust fan not working',trade:'Electrical',priority:'High',status:'Resolved',due:'Apr 20'},
+    {id:4,area:'Staircase',item:'Baluster 3 wobbly — regrout needed',trade:'Masonry',priority:'High',status:'Open',due:'Apr 22'},
+  ],
+  messages:[
+    {from:'contractor',text:'Column rebar works Level 1 complete. On track for Apr 18 slab pour.',time:'Mar 18, 2:14 PM'},
+    {from:'client',text:'Looks great in the photos!',time:'Mar 18, 3:02 PM'},
+    {from:'contractor',text:'Still on schedule. I will notify you 3 days before the slab pour.',time:'Mar 18, 3:15 PM'},
+  ],
+  inventory:[
+    {id:1,mat:'Cement (bags)',delivered:820,used:640,expected:180,cost:285,reorder:50},
+    {id:2,mat:'Rebar 12mm (pcs)',delivered:480,used:390,expected:90,cost:408,reorder:20},
+    {id:3,mat:'CHB 6" (pcs)',delivered:1500,used:1100,expected:400,cost:18,reorder:200},
+    {id:4,mat:'Sand (m³)',delivered:42,used:35,expected:7,cost:520,reorder:5},
+    {id:5,mat:'Gravel (m³)',delivered:38,used:32,expected:6,cost:680,reorder:5},
+    {id:6,mat:'Plywood sheets',delivered:80,used:72,expected:8,cost:1450,reorder:10},
+    {id:7,mat:'GI Wire (kg)',delivered:120,used:98,expected:22,cost:85,reorder:20},
+    {id:8,mat:'Paint 4L (cans)',delivered:24,used:8,expected:16,cost:680,reorder:0},
+  ],
+  showDelivery:false,showUsage:false,showReportForm:false,dailyLogs:_dl,
+  featureRequests:[
+    {id:1,title:'Offline mode for daily reports',category:'Mobile',votes:47,status:'In Review',by:'Engr. dela Cruz',date:'Mar 10',description:'File reports on site even without internet. Sync automatically when back online.'},
+    {id:2,title:'QR code attendance scanning',category:'Workforce',votes:38,status:'Planned',by:'Arch. Santos',date:'Mar 8',description:'Workers scan QR code at gate to record time-in/out. Eliminates ghost workers automatically.'},
+    {id:3,title:'GCash direct payment in client portal',category:'Payments',votes:31,status:'In Review',by:'Daphne Lim',date:'Mar 5',description:'Allow clients to pay progress billings directly in their portal via GCash or Maya.'},
+    {id:4,title:'Export BOQ to Excel',category:'BOQ',votes:25,status:'Completed',by:'Engr. Reyes',date:'Feb 28',description:'One-click export of full BOQ to Excel for client submission and archiving.'},
+  ],
+  frTitle:'',frCategory:'General',frDescription:'',frName:'',frEmail:'',frSubmitted:false,showFrForm:false,
+  faqs:[
+    {id:1,q:'How does the client portal work?',a:'Clients get a unique secure link to see real-time progress, photos, and milestones. No app download needed.'},
+    {id:2,q:'Can I manage multiple projects?',a:'Yes. Pro supports 10 active projects, Enterprise is unlimited. Each has its own dashboard, portal, and billing tracker.'},
+    {id:3,q:'Can I cancel anytime?',a:'Monthly billing — cancel anytime, no penalties. Annual gives 2 months free. 14-day trial, no credit card required.'},
+  ],
+  testimonials:[
+    {id:1,name:'Engr. Ramon dela Cruz',role:'General Contractor',company:'RDC Construction Corp',location:'Quezon City',rating:5,text:'Before ConstructAI, clients called me 3x a day. Now they check their portal. Disputes dropped to zero.',avatar:'RC'},
+    {id:2,name:'Arch. Maria Santos',role:'Design-Build Contractor',company:'Santos Design Build',location:'BGC, Taguig',rating:5,text:'The change order module paid for the subscription in month 1. We recovered ₱340,000 we would have lost.',avatar:'MS'},
+    {id:3,name:'Engr. Jose Reyes',role:'Civil Works',company:'Reyes Civil Works',location:'Cebu City',rating:5,text:'The weather delay tracker helped me claim 12 extra days on a government project. Client accepted immediately.',avatar:'JR'},
+    {id:4,name:'Daphne Lim',role:'Property Developer',company:'Lim Properties',location:'Makati',rating:5,text:'I oversee 6 projects at once. ConstructAI shows me which need attention. My accountant loves the billing tracker.',avatar:'DL'},
+  ],
+  coItems:[
+    {id:1,desc:'Perimeter fence (CHB)',by:'Client',amount:85000,status:'Approved',date:'Mar 3'},
+    {id:2,desc:'Upgrade roofing to GA26',by:'Client',amount:42000,status:'Pending',date:'Mar 10'},
+    {id:3,desc:'Relocate kitchen drain',by:'Architect',amount:18500,status:'Disputed',date:'Mar 14'},
+  ],
+  billings:[
+    {ref:'DP-01',ms:'Down Payment (10%)',amount:425000,due:'Feb 1',status:'Received'},
+    {ref:'PR-01',ms:'Foundation Complete (20%)',amount:850000,due:'Feb 20',status:'Received'},
+    {ref:'PR-02',ms:'Structural Framing (20%)',amount:850000,due:'Mar 15',status:'Partial'},
+    {ref:'PR-03',ms:'Roofing & MEP (20%)',amount:850000,due:'Apr 10',status:'Not Due'},
+    {ref:'FN-01',ms:'Final Turnover (10%)',amount:425000,due:'Jun 1',status:'Not Due'},
+  ],
+  openFaq:null,portalTab:'progress',adminSection:'faqs',
+  editFaqIdx:null,editFaqQ:'',editFaqA:'',showFaqForm:false,
+  boqRates:[85000,6200,72,18,850],editBoq:false,
+  billing:'annual',showPunchForm:false,
+  newsFilter:'All',mktDetail:null,
+};
+
+const hc=h=>h==='good'?GR:h==='watch'?OR:RD;
+const sc=s=>({Received:GR,Pass:GR,Approved:GR,Resolved:GR,Completed:GR,done:GR,Partial:OR,Pending:OR,'In Review':OR,'Not Due':'#8e8e93',Fail:RD,Disputed:RD,Open:OR,AWOL:RD,Planned:BL}[s]||'#8e8e93');
+const bdg=(t,c)=>`<span style="background:${c}20;color:${c};border-radius:20px;padding:2px 10px;font-size:12px;font-weight:500;white-space:nowrap">${t}</span>`;
+const cd=(html,style='')=>`<div class="card" style="${style}">${html}</div>`;
+const st=(icon,label,val,color)=>`<div class="card2"><div style="font-size:20px;margin-bottom:8px">${icon}</div><div style="font-size:22px;font-weight:700;color:${color};margin-bottom:2px;letter-spacing:-.02em">${val}</div><div style="font-size:13px;color:var(--text3)">${label}</div></div>`;
+const pb=(v,c,h=6)=>`<div style="height:${h}px;background:var(--card3);border-radius:${h}px;overflow:hidden"><div style="height:100%;width:${cl(v,0,100)}%;background:${c};border-radius:${h}px;transition:width .8s ease"></div></div>`;
+const bt=(label,oc,v='filled',c,sm)=>{const col=c||BL;const bg=v==='filled'?col:v==='tinted'?col+'20':'transparent';const tc=v==='filled'?'#fff':col;return`<button onclick="${oc}" style="background:${bg};color:${tc};border:${v==='ghost'?'0.5px solid var(--sep)':'none'};border-radius:20px;padding:${sm?'5px 12px':'9px 18px'};font-size:${sm?12:13}px;font-weight:500">${label}</button>`;};
+
+function NAV(){
+  const vs=[{id:'landing',l:'Home'},{id:'projects',l:'Projects'},{id:'dashboard',l:'Dashboard'},{id:'client',l:'Client Portal'},{id:'market',l:'Market'},{id:'admin',l:'Admin'},{id:'saas',l:'SaaS Core'}];
+  return`<nav style="background:var(--nav);backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--sep);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;transition:background .3s">
+    <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="go('landing')">
+      <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover">
+      <span style="font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)">ConstructAI <span style="color:${BL}">PH</span></span>
+    </div>
+    <div style="display:flex;gap:2px">
+      ${vs.map(v=>`<button onclick="go('${v.id}')" style="padding:6px 12px;border-radius:16px;border:none;background:${A.view===v.id?BL+'20':'transparent'};color:${A.view===v.id?BL:'var(--text3)'};font-size:13px;font-weight:${A.view===v.id?500:400}">${v.l}</button>`).join('')}
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="const tm={light:'dark',dark:'solana',solana:'blueprint',blueprint:'light'};ss({theme:tm[A.theme]})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:500;color:var(--text2)">${{light:'☀️ Light',dark:'🌙 Dark',solana:'🟩 Solana',blueprint:'📐 Blueprint'}[A.theme]}</button>
+      ${A.user?`<span style="font-size:12px;color:var(--text3)">${A.user.name}</span>${bt('Sign Out','doSignOut()','ghost',null,true)}`:bt('Sign In',"go('auth')",'tinted',BL,true)}
+    </div>
+  </nav>`;
+}
+
+function TICKER(){
+  const items=NEWS_DATA.map(n=>`<span style="font-size:12px;color:var(--text2);display:inline-flex;align-items:center;gap:6px"><span style="background:${n.color}20;color:${n.color};border-radius:10px;padding:1px 7px;font-size:11px;font-weight:500">${n.tag}</span>${n.urgent?'🚨 ':''}<span>${n.title}</span></span>`).join('');
+  return`<div class="tw" style="background:var(--card);border-bottom:0.5px solid var(--sep);padding:8px 0"><div class="ti" style="gap:60px">${items}&nbsp;&nbsp;&nbsp;${items}</div></div>`;
+}
+
+function LANDING(){
+  const bA=p=>A.billing==='annual'?p.annual:p.monthly;
+  const PL=[
+    {name:'Starter',monthly:990,annual:790,color:BL,features:['3 active projects','Client progress portal','BOQ & billing tracker','Material inventory','Change order log','Email support']},
+    {name:'Pro',monthly:2490,annual:1990,color:OR,popular:true,features:['10 active projects','Everything in Starter','Workforce attendance','Weather delay tracker','Safety OSH compliance','AI BOQ Generator','Market news feed','Priority support']},
+    {name:'Enterprise',monthly:5990,annual:4790,color:GR,features:['Unlimited projects','Everything in Pro','Multi-project dashboard','5 team users','E-signature module','GCash/Maya payments','API access','Dedicated account manager']},
+  ];
+  const FT=[
+    {icon:'📊',title:'Live Client Portal',desc:'Clients see real-time progress, photos, milestones. No more 3-calls-a-day.',color:BL},
+    {icon:'💰',title:'Cash Flow Tracker',desc:'CIAP 102 billing milestones. Know exactly what\'s billed vs collected.',color:GR},
+    {icon:'📦',title:'Live Material Inventory',desc:'Real-time delivery and usage tracking. Low-stock alerts. Variance detection.',color:OR},
+    {icon:'📰',title:'Market News Feed',desc:'PSA price indices, DOLE advisories, PAGASA alerts, and industry news.',color:TE},
+    {icon:'👷',title:'Workforce Attendance',desc:'Daily headcount, AWOL alerts, anti-ghost worker checklist.',color:PU},
+    {icon:'💡',title:'Feature Requests',desc:'Vote on features. Most-voted get built first. Submit your own ideas.',color:IN},
+    {icon:'🦺',title:'DOLE OSH Compliance',desc:'R.A. 11058 checklist. Track incidents. Avoid ₱100k/day fines.',color:RD},
+    {icon:'🤖',title:'AI BOQ Generator',desc:'Input area and finish level — complete BOQ in 30 seconds.',color:OR},
+  ];
+  return`<div style="max-width:920px;margin:0 auto;padding:0 20px 60px">
+    <div style="text-align:center;padding:52px 20px 44px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:${BL}15;border:0.5px solid ${BL}30;border-radius:20px;padding:5px 14px;margin-bottom:20px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${GR};animation:pulse 2s infinite"></div>
+        <span style="font-size:13px;color:${BL};font-weight:500">🇵🇭 Built for Philippine Contractors</span>
+      </div>
+      <h1 style="font-size:clamp(30px,5vw,52px);font-weight:700;line-height:1.08;letter-spacing:-.04em;margin-bottom:16px;color:var(--text)">Your client sees progress,<br><span style="color:${BL}">not problems.</span></h1>
+      <p style="font-size:16px;color:var(--text2);max-width:480px;margin:0 auto 28px;line-height:1.6">The all-in-one construction management platform for Philippine contractors.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+        ${bt('Start Free Trial — Open App','goDashDemo()')}${bt('View Market Prices',"go('market')",'ghost')}
+      </div>
+      <p style="font-size:12px;color:var(--text4)">14-day free trial · No credit card · Cancel anytime</p>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px">
+      ${[['1,200+','Active Contractors'],['₱4.8B','Projects Managed'],['94%','Client Satisfaction'],['Zero','Billing Disputes']].map(([v,l])=>`<div style="text-align:center;background:var(--card);border:0.5px solid var(--sep);border-radius:13px;padding:16px"><div style="font-size:26px;font-weight:700;color:${BL};letter-spacing:-.03em;margin-bottom:4px">${v}</div><div style="font-size:13px;color:var(--text3)">${l}</div></div>`).join('')}
+    </div>
+    <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:18px;color:var(--text)">Features built for real contractor problems</h2>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:44px">
+      ${FT.map(f=>`<div style="background:var(--card);border:0.5px solid var(--sep);border-radius:13px;padding:18px;transition:all .2s" onmouseenter="this.style.boxShadow='0 4px 20px rgba(0,0,0,.1)'" onmouseleave="this.style.boxShadow='none'">
+        <div style="font-size:22px;margin-bottom:8px">${f.icon}</div>
+        <div style="width:20px;height:2px;background:${f.color};border-radius:2px;margin-bottom:8px"></div>
+        <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)">${f.title}</div>
+        <div style="font-size:12px;color:var(--text3);line-height:1.5">${f.desc}</div>
+      </div>`).join('')}
+    </div>
+    <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:8px;color:var(--text)">Stories from the field</h2>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:44px">
+      ${A.testimonials.map(t=>`<div style="background:var(--card);border:0.5px solid var(--sep);border-radius:13px;padding:20px">
+        <div style="color:${OR};font-size:14px;margin-bottom:10px">${'★'.repeat(t.rating)}</div>
+        <p style="font-size:14px;color:var(--text2);line-height:1.65;margin-bottom:14px;font-style:italic">"${t.text}"</p>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="width:38px;height:38px;border-radius:50%;background:${BL};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:#fff;flex-shrink:0">${t.avatar}</div>
+          <div><div style="font-size:13px;font-weight:600;color:var(--text)">${t.name}</div><div style="font-size:11px;color:var(--text3)">${t.role} · ${t.company}</div></div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:16px;color:var(--text)">Plans for every contractor</h2>
+    <div style="display:flex;justify-content:center;gap:4px;background:var(--card2);border-radius:20px;padding:4px;width:fit-content;margin:0 auto 22px">
+      ${['monthly','annual'].map(b=>`<button onclick="ss({billing:'${b}'})" style="padding:7px 18px;border-radius:16px;border:none;background:${A.billing===b?'var(--card)':'transparent'};color:var(--text);font-size:13px;font-weight:${A.billing===b?500:400};box-shadow:${A.billing===b?'var(--sh)':'none'}">${b==='annual'?'Annual (−20%)':'Monthly'}</button>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:44px">
+      ${PL.map(p=>`<div style="background:var(--card);border:${p.popular?`1.5px solid ${p.color}`:'0.5px solid var(--sep)'};border-radius:16px;padding:24px;position:relative">
+        ${p.popular?`<div style="position:absolute;top:-12px;left:50%;transform:translateX(-50%);background:${p.color};color:#fff;border-radius:20px;padding:3px 14px;font-size:11px;font-weight:600;white-space:nowrap">Most Popular</div>`:''}
+        <div style="width:8px;height:8px;border-radius:2px;background:${p.color};margin-bottom:10px"></div>
+        <div style="font-size:19px;font-weight:700;margin-bottom:4px;color:var(--text)">${p.name}</div>
+        <div style="font-size:30px;font-weight:700;color:${p.color};letter-spacing:-.03em;margin-bottom:18px">₱${bA(p).toLocaleString()}<span style="font-size:13px;color:var(--text3);font-weight:400">/mo</span></div>
+        <button onclick="goDashDemo()" style="width:100%;background:${p.popular?p.color:p.color+'20'};color:${p.popular?'#fff':p.color};border:none;border-radius:20px;padding:11px;font-size:14px;font-weight:500;margin-bottom:18px">Get Started</button>
+        <div style="border-top:0.5px solid var(--sep);padding-top:14px">
+          ${p.features.map(f=>`<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:${p.color};font-size:13px">✓</span><span style="font-size:13px;color:var(--text2)">${f}</span></div>`).join('')}
+        </div>
+      </div>`).join('')}
+    </div>
+    <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:18px;color:var(--text)">Common questions</h2>
+    <div class="card" style="max-width:680px;margin:0 auto 44px">
+      ${A.faqs.map((f,i)=>`<div style="border-bottom:${i<A.faqs.length-1?'0.5px solid var(--sep)':'none'}">
+        <button onclick="ss({openFaq:${A.openFaq===i?null:i}})" style="width:100%;background:none;border:none;padding:16px 20px;display:flex;justify-content:space-between;align-items:center;gap:16px;text-align:left">
+          <span style="font-size:15px;font-weight:500;color:var(--text)">${f.q}</span>
+          <span style="color:${BL};font-size:20px;flex-shrink:0;transition:transform .2s;transform:${A.openFaq===i?'rotate(45deg)':'rotate(0)'}">+</span>
+        </button>
+        ${A.openFaq===i?`<div style="padding:0 20px 16px"><p style="font-size:14px;color:var(--text2);line-height:1.65">${f.a}</p></div>`:''}
+      </div>`).join('')}
+    </div>
+    <div style="text-align:center;background:var(--card);border:0.5px solid var(--sep);border-radius:18px;padding:44px 24px">
+      <h2 style="font-size:34px;font-weight:700;letter-spacing:-.03em;margin-bottom:12px;color:var(--text)">Stop losing money to poor tracking.</h2>
+      <p style="font-size:15px;color:var(--text2);margin-bottom:24px">Join 1,200+ Philippine contractors.</p>
+      ${bt('Try Free for 14 Days','goDashDemo()')}
+      <p style="font-size:12px;color:var(--text4);margin-top:12px">No credit card · No contract · Cancel anytime</p>
+    </div>
+  </div>`;
+}
+
+function AUTH(){
+  return`<div style="min-height:500px;display:flex;align-items:center;justify-content:center;padding:40px 20px">
+    <div style="width:100%;max-width:360px">
+      <div style="text-align:center;margin-bottom:28px">
+        <img src="logo.png" style="width:52px;height:52px;border-radius:14px;object-fit:cover;margin:0 auto 14px;display:block">
+        <div style="font-size:22px;font-weight:700;margin-bottom:4px;color:var(--text)">Sign in</div>
+        <div style="font-size:13px;color:var(--text3)">Sign in with your contractor account</div>
+      </div>
+      <div class="card" style="padding:24px">
+        <div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Email</div><input type="email" id="ae" placeholder="you@company.com"></div>
+        <div style="margin-bottom:16px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Password</div><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <div id="login-err" style="color:${RD};font-size:13px;margin-bottom:10px;display:none"></div>
+        <button id="login-btn" onclick="doLogin()" style="width:100%;background:${BL};color:#fff;border:none;border-radius:20px;padding:12px;font-size:15px;font-weight:500">Sign In</button>
+      </div>
+      <div style="text-align:center;margin-top:14px">
+        <button onclick="goDashDemo()" style="font-size:13px;color:${BL};background:none;border:none">Skip — Demo Mode</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function PROJECTS(){
+  const PL=A.dbProjects||MOCK_PROJECTS;
+  const total=PL.reduce((a,p)=>a+p.value,0);
+  return`<div style="max-width:860px;margin:0 auto;padding:28px 20px">
+    <div style="margin-bottom:22px">
+      <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;color:var(--text)">Your Projects</div>
+      <div style="font-size:14px;color:var(--text3)">Select a project to open its dashboard</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
+      ${st('💼','Active Projects',PL.filter(p=>p.phase!=='Warranty Period').length,BL)}
+      ${st('💰','Total Pipeline',fmtK(total),GR)}
+      ${st('⚠️','Need Attention',PL.filter(p=>p.health!=='good').length,OR)}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+      ${PL.map(p=>`<div class="card rh" onclick="selectProject('${p.id}')" style="padding:16px 20px;cursor:pointer;border-color:${p.health==='critical'?RD+'40':p.health==='watch'?OR+'30':'var(--sep)'}">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="width:10px;height:10px;border-radius:50%;background:${hc(p.health)};flex-shrink:0"></div>
+          <div style="flex:1;min-width:0">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+              <span style="font-size:14px;font-weight:600;color:var(--text)">${p.name}</span>
+              ${bdg(p.health==='good'?'On Track':p.health==='watch'?'Watch':'Critical',hc(p.health))}
+            </div>
+            <div style="font-size:12px;color:var(--text3)">${p.client} · ${p.location} · ${p.phase}</div>
+          </div>
+          <div style="text-align:center;min-width:60px">
+            <div style="font-size:22px;font-weight:700;color:${hc(p.health)};letter-spacing:-.03em">${p.pct}%</div>
+            <div style="font-size:11px;color:var(--text4)">complete</div>
+          </div>
+          <div style="text-align:right;min-width:100px">
+            <div style="font-size:15px;font-weight:600;color:var(--text)">${fmtK(p.value)}</div>
+            <div style="font-size:12px;color:${p.margin>10?GR:p.margin>7?OR:RD}">${p.margin}% margin</div>
+          </div>
+          <div style="text-align:right;min-width:50px">
+            <div style="font-size:14px;font-weight:600;color:${p.daysLeft<14&&p.daysLeft>0?RD:'var(--text)'}">${p.daysLeft>0?p.daysLeft+'d':'✓'}</div>
+            <div style="font-size:11px;color:var(--text4)">left</div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <div style="background:var(--card2);border-radius:13px;padding:16px">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:5px">Client Portal Demo</div>
+      <div style="font-size:13px;color:var(--text3);margin-bottom:12px">See exactly what your client sees when they open their progress link.</div>
+      ${bt('Open Client Portal Demo →',"go('client')",'tinted')}
+    </div>
+  </div>`;
+}
+
+function DASHBOARD(){
+  const p=A.project||(A.dbProjects||MOCK_PROJECTS)[0];
+  const TB=[{id:'overview',icon:'📊',l:'Overview'},{id:'reports',icon:'📝',l:'Daily Reports'},{id:'cashflow',icon:'💰',l:'Cash Flow'},{id:'inventory',icon:'📦',l:'Live Inventory'},{id:'workforce',icon:'👷',l:'Workforce'},{id:'punch',icon:'✅',l:'Punch List'},{id:'boq',icon:'📄',l:'BOQ'},{id:'changeorders',icon:'🔄',l:'Change Orders'},{id:'gantt',icon:'📅',l:'Timeline'},{id:'safety',icon:'🦺',l:'Safety'},{id:'profit',icon:'💹',l:'Profitability'},{id:'requests',icon:'💡',l:'Feature Requests'}];
+  let C='';
+
+  if(A.dashTab==='overview'){
+    C=`<div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="background:${BL};border-radius:13px;padding:22px">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:5px;text-transform:uppercase;letter-spacing:.08em">Contract Value</div>
+        <div style="font-size:34px;font-weight:700;color:#fff;letter-spacing:-.03em;margin-bottom:12px">${fmtK(p.value)}</div>
+        ${pb(p.pct,'rgba(255,255,255,.9)',7)}
+        <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:6px">Week ${Math.round(p.pct/5)} of 19 · ${p.pct}% complete · ${p.phase}</div>
+      </div>
+      ${st('💰','Cash Gap',fmtK(p.cashGap),p.cashGap>0?RD:GR)}
+      ${st('✅','Open Punches',A.punches.filter(x=>x.status==='Open').length,OR)}
+      ${st('💹','Net Margin',p.margin+'%',p.margin>10?GR:p.margin>7?OR:RD)}
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Active alerts</div>
+      ${[{c:RD,i:'💰',m:'Progress billing PR-02 (₱850,000) 3 days overdue. Send client reminder.',t:'cashflow'},{c:OR,i:'👷',m:'Glenn Padilla (Plumber) AWOL — 3 consecutive days. Call and replace if no response.',t:'workforce'},{c:OR,i:'📦',m:`${A.inventory.filter(x=>x.delivered-x.used<=x.reorder&&x.reorder>0).length} materials at or below reorder level. Check live inventory.`,t:'inventory'},{c:OR,i:'🦺',m:'Fire Safety Clearance (BFP) not applied. Required before occupancy permit.',t:'safety'}].map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:${a.c}08;border-bottom:0.5px solid var(--sep)">
+        <span style="font-size:18px">${a.i}</span>
+        <span style="font-size:13px;flex:1;line-height:1.45;color:var(--text)">${a.m}</span>
+        <button onclick="ss({dashTab:'${a.t}'})" style="background:${a.c}20;color:${a.c};border:none;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:500;flex-shrink:0">View →</button>
+      </div>`).join('')}
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">
+      ${st('💸','Spent to Date',fmtK(p.spent),BL)}${st('📄','Billed',fmtK(p.billed),PU)}${st('✅','Received',fmtK(p.received),GR)}
+    </div>`;
+  }
+
+  else if(A.dashTab==='reports'){
+    const DR=A.dailyLogs;
+    const unsynced=DR.filter(x=>!x.s).length;
+    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      ${st('📝','Total Logs',DR.length+' days',BL)}${st('👷','Avg Headcount','33',PU)}${st('⚠️','Incidents','0 this week',GR)}${st('📶','Offline Sync',unsynced>0?unsynced+' offline':'Synced',unsynced>0?OR:GR)}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div><div style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em">Daily Site Reports</div><div style="font-size:13px;color:var(--text3)">Log weather, headcount, equipment, and progress. Runs fully offline via local caching.</div></div>
+      ${bt('+ New Report','ss({showReportForm:!A.showReportForm})',"filled",BL,true)}
+    </div>
+    ${A.showReportForm?`<div class="card" style="padding:18px;margin-bottom:16px;background:var(--card2)">
+      <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Create Daily Report</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:10px">
+         <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Weather</div><input id="dr_w" placeholder="Sunny, 32C"></div>
+         <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Headcount</div><input type="number" id="dr_h" placeholder="30"></div>
+         <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Equip Used</div><input type="number" id="dr_e" placeholder="2"></div>
+      </div>
+      <div style="margin-bottom:10px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Progress</div><textarea id="dr_p" rows="2" placeholder="Narrative..."></textarea></div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">
+         <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Deliveries</div><input id="dr_v" placeholder="Cement, Rebar..."></div>
+         <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Notes/Incidents</div><input id="dr_n" placeholder="Any issues?"></div>
+      </div>
+      <div style="display:flex;gap:8px">
+        ${bt('💾 Save (Works Offline)','saveReport()','filled',BL)}
+        ${bt('Cancel','ss({showReportForm:false})','ghost')}
+      </div>
+    </div>`:''}
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${DR.map((r,i)=>`<div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;border-bottom:0.5px solid var(--sep);padding-bottom:12px">
+          <div>
+            <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:4px">${r.d}</div>
+            <div style="display:flex;gap:14px;font-size:12px;color:var(--text3)"><span style="display:flex;align-items:center;gap:4px">🌤️ ${r.w}</span><span style="display:flex;align-items:center;gap:4px">👷 ${r.h} Workers</span><span style="display:flex;align-items:center;gap:4px">🚜 ${r.e} Equipment</span></div>
+          </div>
+          ${bt('Export PDF',`exportReportPDF(${i})`,'tinted',r.c,true)}
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+          <div>
+            <div style="font-size:11px;font-weight:600;color:${BL};text-transform:uppercase;margin-bottom:4px;letter-spacing:.05em">Progress & Workflow</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:12px">${r.p}</div>
+            <div style="font-size:11px;font-weight:600;color:${OR};text-transform:uppercase;margin-bottom:4px;letter-spacing:.05em">Deliveries</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.5">${r.v.join(', ')}</div>
+          </div>
+          <div>
+            <div style="font-size:11px;font-weight:600;color:${PU};text-transform:uppercase;margin-bottom:4px;letter-spacing:.05em">Notes & Safety</div>
+            <div style="font-size:13px;color:var(--text);line-height:1.5;margin-bottom:12px">${r.n}</div>
+            <div style="font-size:11px;font-weight:600;color:${GR};text-transform:uppercase;margin-bottom:6px;letter-spacing:.05em">Site Photos</div>
+            <div style="display:flex;gap:6px">
+              <div style="width:40px;height:40px;background:var(--card2);border:0.5px solid var(--sep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px">📸</div>
+              ${i===0?`<div style="width:40px;height:40px;background:var(--card2);border:0.5px solid var(--sep);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px">📸</div>`:``}
+            </div>
+          </div>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  else if(A.dashTab==='inventory'){
+    const totalV=A.inventory.reduce((a,i)=>a+(i.delivered-i.used)*i.cost,0);
+    const lowSt=A.inventory.filter(i=>i.delivered-i.used<=i.reorder&&i.reorder>0);
+    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      ${st('📦','Total Materials',A.inventory.length+' items',BL)}
+      ${st('⚠️','Low Stock',lowSt.length,lowSt.length>0?RD:GR)}
+      ${st('📉','Variance Items',A.inventory.filter(i=>i.delivered-i.used<i.expected-5).length,OR)}
+      ${st('💰','On-Site Value',fmtK(totalV),PU)}
+    </div>
+    <div class="card" style="margin-bottom:14px">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
+        <div><span style="font-size:14px;font-weight:600;color:var(--text)">Live Site Inventory</span><span style="font-size:12px;color:var(--text3);margin-left:8px">Real-time delivery and usage log</span></div>
+        <div style="display:flex;gap:8px">
+          ${bt('+ Log Delivery',"ss({showDelivery:!A.showDelivery,showUsage:false})",'tinted',GR,true)}
+          ${bt('− Log Usage',"ss({showUsage:!A.showUsage,showDelivery:false})",'tinted',OR,true)}
+        </div>
+      </div>
+      ${A.showDelivery?`<div style="padding:14px 18px;background:${GR}0a;border-bottom:0.5px solid var(--sep);display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="font-size:13px;font-weight:600;color:${GR};width:100%;margin-bottom:4px">Log New Delivery</div>
+        <div style="flex:2;min-width:150px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Material</div>
+          <select id="dm" style="background:var(--input)">${A.inventory.map(i=>`<option value="${i.id}">${i.mat}</option>`).join('')}</select></div>
+        <div style="flex:1;min-width:100px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Quantity Delivered</div><input type="number" id="dq" placeholder="0" min="1"></div>
+        <button onclick="logDelivery()" style="background:${GR};color:#fff;border:none;border-radius:16px;padding:9px 16px;font-size:13px;font-weight:500">Confirm</button>
+        <button onclick="ss({showDelivery:false})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:16px;padding:9px 14px;font-size:13px;color:var(--text3)">Cancel</button>
+      </div>`:''}
+      ${A.showUsage?`<div style="padding:14px 18px;background:${OR}0a;border-bottom:0.5px solid var(--sep);display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="font-size:13px;font-weight:600;color:${OR};width:100%;margin-bottom:4px">Log Material Usage</div>
+        <div style="flex:2;min-width:150px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Material</div>
+          <select id="um" style="background:var(--input)">${A.inventory.map(i=>`<option value="${i.id}">${i.mat}</option>`).join('')}</select></div>
+        <div style="flex:1;min-width:100px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Quantity Used</div><input type="number" id="uq" placeholder="0" min="1"></div>
+        <button onclick="logUsage()" style="background:${OR};color:#fff;border:none;border-radius:16px;padding:9px 16px;font-size:13px;font-weight:500">Log Usage</button>
+        <button onclick="ss({showUsage:false})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:16px;padding:9px 14px;font-size:13px;color:var(--text3)">Cancel</button>
+      </div>`:''}
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:640px">
+        <thead><tr style="background:var(--card2)">${['Material','Delivered','Used','On Hand','Expected','Variance','Status','Value'].map(h=>`<th style="padding:9px 14px;font-size:11px;font-weight:500;color:var(--text3);text-align:left;border-bottom:0.5px solid var(--sep)">${h}</th>`).join('')}</tr></thead>
+        <tbody>${A.inventory.map(r=>{
+          const oh=r.delivered-r.used,vr=oh-r.expected,low=oh<=r.reorder&&r.reorder>0,vari=vr<-5,val=oh*r.cost;
+          let sx='OK',sc2=GR;if(low){sx='Low Stock';sc2=RD;}else if(vari){sx='Variance';sc2=OR;}
+          return`<tr class="rh" style="border-bottom:0.5px solid var(--sep);background:${low?RD+'05':vari?OR+'04':'transparent'}">
+            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--text)">${r.mat}</td>
+            <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${r.delivered.toLocaleString()}</td>
+            <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${r.used.toLocaleString()}</td>
+            <td style="padding:10px 14px;font-size:14px;font-weight:700;color:${low?RD:'var(--text)'}">${oh.toLocaleString()}</td>
+            <td style="padding:10px 14px;font-size:13px;color:var(--text3)">${r.expected.toLocaleString()}</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:${vr<-5?RD:vr<0?OR:GR}">${vr===0?'—':vr>0?'+'+vr:vr}</td>
+            <td style="padding:10px 14px">${bdg(sx,sc2)}</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:500;color:var(--text)">${fmtK(val)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+        <tfoot><tr style="background:${BL}0a;border-top:1px solid ${BL}25">
+          <td colspan="7" style="padding:12px 14px;font-size:13px;font-weight:600;color:${BL}">Total On-Site Material Value</td>
+          <td style="padding:12px 14px;font-size:15px;font-weight:700;color:${BL}">${fmtK(totalV)}</td>
+        </tr></tfoot>
+      </table></div>
+    </div>
+    ${lowSt.length>0?`<div style="background:${RD}08;border:0.5px solid ${RD}30;border-radius:13px;padding:16px">
+      <div style="font-size:14px;font-weight:600;color:${RD};margin-bottom:10px">⚠️ Low Stock — Reorder Now</div>
+      ${lowSt.map(i=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid ${RD}15">
+        <span style="font-size:13px;font-weight:500;color:var(--text)">${i.mat}</span>
+        <span style="font-size:12px;color:${RD};font-weight:500">${i.delivered-i.used} remaining — ORDER NOW</span>
+      </div>`).join('')}
+    </div>`:''} `;
+  }
+
+  else if(A.dashTab==='requests'){
+    C=`<div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div><div style="font-size:20px;font-weight:700;letter-spacing:-.02em;color:var(--text)">Feature Requests</div><div style="font-size:13px;color:var(--text3)">Vote on features you want. Most-voted get built first.</div></div>
+          ${bt('+ Submit Request',"ss({showFrForm:true})",'tinted',BL,true)}
+        </div>
+        ${A.showFrForm?`<div class="card" style="padding:20px;margin-bottom:16px;border-color:${BL}40">
+          <div style="font-size:14px;font-weight:600;color:${BL};margin-bottom:14px">Submit a Feature Request</div>
+          ${A.frSubmitted?`<div style="text-align:center;padding:24px 0">
+            <div style="font-size:32px;margin-bottom:10px">🎉</div>
+            <div style="font-size:16px;font-weight:600;color:var(--text);margin-bottom:6px">Request Submitted!</div>
+            <div style="font-size:13px;color:var(--text3);margin-bottom:16px">Added to our backlog. We will notify you when it is planned.</div>
+            ${bt('Submit Another',"ss({frSubmitted:false,frTitle:'',frDescription:'',frName:'',frEmail:''})",'ghost',null,true)}
+          </div>`:`<div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+              <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Your Name</div><input id="frn" placeholder="Engr. Juan dela Cruz" value="${A.frName}"></div>
+              <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Email</div><input id="fre" placeholder="you@company.com" type="email" value="${A.frEmail}"></div>
+            </div>
+            <div style="margin-bottom:12px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Feature Title</div><input id="frt" placeholder="e.g. QR code attendance scanning" value="${A.frTitle}"></div>
+            <div style="margin-bottom:12px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Category</div>
+              <select id="frc" style="background:var(--input)">
+                ${['Mobile','Workforce','Payments','BOQ','Reports','Safety','General'].map(c=>`<option value="${c}" ${A.frCategory===c?'selected':''}>${c}</option>`).join('')}
+              </select>
+            </div>
+            <div style="margin-bottom:16px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Description</div><textarea id="frd" rows="3" placeholder="Describe the feature and why it would help contractors...">${A.frDescription}</textarea></div>
+            <div style="display:flex;gap:8px">
+              <button onclick="submitFR()" style="background:${BL};color:#fff;border:none;border-radius:20px;padding:9px 20px;font-size:13px;font-weight:500">Submit Request</button>
+              ${bt('Cancel',"ss({showFrForm:false})",'ghost',null,true)}
+            </div>
+          </div>`}
+        </div>`:''}
+        <div style="display:flex;flex-direction:column;gap:10px">
+          ${A.featureRequests.sort((a,b)=>b.votes-a.votes).map(fr=>`<div class="card" style="padding:18px 20px">
+            <div style="display:flex;gap:14px;align-items:flex-start">
+              <div style="text-align:center;min-width:52px">
+                <div style="background:var(--card2);border:0.5px solid var(--sep);border-radius:10px;padding:8px;cursor:pointer" onclick="voteFR(${fr.id})">
+                  <div style="font-size:11px;color:var(--text3)">▲</div>
+                  <div style="font-size:18px;font-weight:700;color:${BL};line-height:1.1">${fr.votes}</div>
+                  <div style="font-size:10px;color:var(--text3)">votes</div>
+                </div>
+              </div>
+              <div style="flex:1">
+                <div style="display:flex;gap:8px;align-items:center;margin-bottom:5px;flex-wrap:wrap">
+                  <span style="font-size:15px;font-weight:600;color:var(--text)">${fr.title}</span>
+                  ${bdg(fr.category,BL)}${bdg(fr.status,sc(fr.status))}
+                </div>
+                <p style="font-size:13px;color:var(--text2);line-height:1.55;margin-bottom:6px">${fr.description}</p>
+                <div style="font-size:12px;color:var(--text4)">By ${fr.by} · ${fr.date}</div>
+              </div>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div class="card" style="padding:18px;margin-bottom:12px">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Request Stats</div>
+          ${[['💡','Total',A.featureRequests.length,BL],['✅','Completed',A.featureRequests.filter(f=>f.status==='Completed').length,GR],['🗺️','Planned',A.featureRequests.filter(f=>f.status==='Planned').length,OR],['🔍','In Review',A.featureRequests.filter(f=>f.status==='In Review').length,PU]].map(([i,l,v,c])=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--sep)">
+            <div style="display:flex;gap:8px;align-items:center"><span style="font-size:16px">${i}</span><span style="font-size:13px;color:var(--text2)">${l}</span></div>
+            <span style="font-size:16px;font-weight:700;color:${c}">${v}</span>
+          </div>`).join('')}
+        </div>
+        <div class="card" style="padding:18px">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Top Voted</div>
+          ${A.featureRequests.sort((a,b)=>b.votes-a.votes).slice(0,3).map(fr=>`<div style="margin-bottom:10px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:4px">
+              <span style="font-size:12px;color:var(--text2)">${fr.title.substring(0,30)}${fr.title.length>30?'…':''}</span>
+              <span style="font-size:12px;font-weight:700;color:${BL}">${fr.votes}</span>
+            </div>
+            ${pb((fr.votes/A.featureRequests[0].votes)*100,BL,5)}
+          </div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+
+  else if(A.dashTab==='workforce'){
+    const present=A.workers.filter(w=>w.s==='In').length;
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      ${st('👷','Total Headcount',A.workers.length,BL)}
+      ${st('✅','Present Today',present,GR)}
+      ${st('⚠️','AWOL / Out',A.workers.length-present,RD)}
+    </div>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+      <div><div style="font-size:20px;font-weight:700;color:var(--text);letter-spacing:-.02em">Workforce Attendance (QR)</div><div style="font-size:13px;color:var(--text3)">Scan worker QR codes at the gate to securely clock in/out.</div></div>
+      ${bt(A.scanningQR?'⨯ Close Scanner':'📷 Launch Scanner',"ss({scanningQR:!A.scanningQR})",A.scanningQR?'tinted':'filled',A.scanningQR?RD:BL,true)}
+    </div>
+    ${A.scanningQR?`<div class="card" style="padding:28px;margin-bottom:20px;display:flex;flex-direction:column;align-items:center;background:#050505;border:none">
+       <div style="width:220px;height:220px;border:2px solid ${GR};border-radius:16px;position:relative;overflow:hidden;margin-bottom:20px;background:rgba(0,255,163,.05);box-shadow:0 0 40px rgba(0,255,163,.1)">
+          <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${GR};box-shadow:0 0 14px 4px ${GR};animation:scan 2s infinite linear"></div>
+          <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:rgba(255,255,255,.5)">Camera Active...</div>
+       </div>
+       <div style="font-size:14px;color:#fff;margin-bottom:16px">Waiting for worker badge...</div>
+       ${bt('Simulate Scan (Demo)',`scanWorker()`,'filled',BL)}
+    </div>`:''}
+    <div class="card" style="overflow-x:auto">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Today's Log (Live)</div>
+      <table style="width:100%;border-collapse:collapse;min-width:600px">
+        <thead><tr style="background:var(--card2);border-bottom:0.5px solid var(--sep)">${['Worker Profile','Role','Time In','Status'].map(h=>`<th style="padding:10px 18px;text-align:left;font-size:11px;color:var(--text3);font-weight:500">${h}</th>`).join('')}</tr></thead>
+        <tbody>${A.workers.map(w=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
+          <td style="padding:12px 18px;display:flex;align-items:center;gap:12px">
+             <img src="${w.p}" style="width:34px;height:34px;border-radius:50%;background:var(--card3)">
+             <div><div style="font-size:13px;font-weight:600;color:var(--text)">${w.n}</div><div style="font-size:11px;color:var(--text3)">${w.id}</div></div>
+          </td>
+          <td style="padding:12px 18px;font-size:13px;color:var(--text2)">${w.r}</td>
+          <td style="padding:12px 18px;font-size:13px;color:var(--text2);font-variant-numeric:tabular-nums">${w.s==='In'?w.t:'—'}</td>
+          <td style="padding:12px 18px">${bdg(w.s,w.s==='In'?GR:RD)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+
+  else if(A.dashTab==='cashflow'){
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      ${st('📄','Total Billed',fmtK(p.billed),BL)}${st('✅','Received',fmtK(p.received),GR)}${st('⚠️','Cash Gap',fmtK(p.cashGap),RD)}
+    </div>
+    <div class="card">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Progress billing schedule (CIAP Document 102)</div>
+      ${A.billings.map((b,i)=>`<div class="rh" style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:${i<A.billings.length-1?'0.5px solid var(--sep)':'none'}">
+        <div><div style="display:flex;gap:8px;align-items:center;margin-bottom:3px;flex-wrap:wrap"><span style="font-size:14px;font-weight:500;color:var(--text)">${b.ms}</span>${bdg(b.status,sc(b.status))}</div><div style="font-size:12px;color:var(--text3)">${b.ref} · Due ${b.due||b.due_date}</div></div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="font-size:16px;font-weight:600;color:var(--text)">${fmt(b.amount)}</div>
+          ${b.status==='Received'?'':`<button onclick="sendPayLink('${b.ref}',${b.amount},'${(b.ms||'').replace(/'/g,'')}')" style="background:${GR}20;color:${GR};border:none;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:500;white-space:nowrap">${b.paymongo_checkout_url?'<a href=&quot;'+b.paymongo_checkout_url+'&quot; target=&quot;_blank&quot; style=&quot;color:'+GR+';text-decoration:none&quot;>Open Link ↗</a>':'Send Link'}</button>`}
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  else if(A.dashTab==='gantt'){
+    C=`<div class="card" style="padding:24px;background:var(--card);overflow-x:auto">
+         <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:20px;letter-spacing:-.01em">Project Timeline & Dependencies</div>
+         <svg id="gantt-target"></svg>
+       </div>`;
+    setTimeout(()=>{
+      const tasks = [
+        { id: 'Phase1', name: 'Pre-Construction & Permits', start: '2026-03-01', end: '2026-03-14', progress: 100 },
+        { id: 'Phase2', name: 'Earthworks & Foundation', start: '2026-03-15', end: '2026-03-31', progress: 100, dependencies: 'Phase1' },
+        { id: 'Phase3', name: 'Structural Works', start: '2026-04-01', end: '2026-05-15', progress: 65, dependencies: 'Phase2' },
+        { id: 'Phase4', name: 'Roofing & Waterproofing', start: '2026-05-16', end: '2026-06-01', progress: 0, dependencies: 'Phase3' },
+        { id: 'Phase5', name: 'Finishing Works', start: '2026-06-02', end: '2026-07-20', progress: 0, dependencies: 'Phase4' },
+      ];
+      if(window.Gantt) {
+        new Gantt('#gantt-target', tasks, {
+          header_height: 50, column_width: 30, step: 24, view_modes: ['Day','Week','Month'], bar_height: 30, bar_corner_radius: 6, arrow_curve: 5, padding: 18, view_mode: 'Day'
+        });
+        document.querySelectorAll('.gantt .bar-progress').forEach(el=>el.style.fill=BL);
+      }
+    }, 100);
+  }
+
+  else if(A.dashTab==='punch'){
+    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      ${st('📋','Total',A.punches.length,BL)}${st('🔴','Open',A.punches.filter(x=>x.status==='Open').length,RD)}${st('✅','Resolved',A.punches.filter(x=>x.status!=='Open').length,GR)}${st('⚡','High Priority',A.punches.filter(x=>x.priority==='High'&&x.status==='Open').length,OR)}
+    </div>
+    <div class="card">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:600;color:var(--text)">Punch list register</span>
+        <button onclick="ss({showPunchForm:!A.showPunchForm})" style="background:${BL}20;color:${BL};border:none;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:500">+ Log defect</button>
+      </div>
+      ${A.showPunchForm?`<div style="padding:14px 18px;background:var(--card2);border-bottom:0.5px solid var(--sep);display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+        <div style="flex:1;min-width:110px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Area</div><input id="pa" placeholder="Area/Room"></div>
+        <div style="flex:2;min-width:180px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Defect</div><input id="pi" placeholder="Describe defect..."></div>
+        <div style="flex:1;min-width:100px"><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Trade</div><input id="pt" placeholder="Tiles/Painter..."></div>
+        <button onclick="addPunch()" style="background:${BL};color:#fff;border:none;border-radius:16px;padding:9px 16px;font-size:13px;font-weight:500">Add</button>
+      </div>`:''}
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse;min-width:580px">
+        <thead><tr style="background:var(--card2)">${['Area','Defect','Trade','Priority','Due','Status',''].map(h=>`<th style="padding:9px 14px;font-size:11px;font-weight:500;color:var(--text3);text-align:left;border-bottom:0.5px solid var(--sep)">${h}</th>`).join('')}</tr></thead>
+        <tbody>${A.punches.map(x=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep);background:${x.priority==='High'&&x.status==='Open'?RD+'05':'transparent'}">
+          <td style="padding:10px 14px;font-size:12px;color:var(--text3)">${x.area}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:500;color:var(--text)">${x.item}</td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--text3)">${x.trade}</td>
+          <td style="padding:10px 14px">${bdg(x.priority,x.priority==='High'?RD:x.priority==='Med'?OR:GR)}</td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--text3)">${x.due}</td>
+          <td style="padding:10px 14px">${bdg(x.status,sc(x.status))}</td>
+          <td style="padding:10px 14px">${x.status==='Open'?`<button onclick="resolvePunch(${x.id})" style="background:${GR}20;color:${GR};border:none;border-radius:16px;padding:4px 10px;font-size:11px;font-weight:500">Done</button>`:''}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  else if(A.dashTab==='boq'){
+    const bB=[{n:'1.0 Earthworks & Site Prep',q:1,u:'lot',r:0},{n:'2.0 Concrete Works (3000 PSI)',q:45.5,u:'m³',r:1},{n:'3.0 Reinforcing Steel Gr40',q:3200,u:'kg',r:2},{n:'4.0 Masonry 6" CHB Exterior',q:1250,u:'pcs',r:3},{n:'5.0 Roofing Pre-painted',q:120,u:'sqm',r:4}];
+    const items=bB.map(i=>({...i,rate:A.boqRates[i.r],total:Math.round(i.q*A.boqRates[i.r])}));
+    const tot=items.reduce((s,i)=>s+i.total,0);
+    C=`<div class="card">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
+        <span style="font-size:14px;font-weight:600;color:var(--text)">Bill of quantities (5 of 24 items)</span>
+        <div>
+          <button onclick="exportBOQ()" style="background:${GR};color:#fff;border:none;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:500;margin-right:8px">⬇ Export Excel</button>
+          <button onclick="ss({editBoq:!A.editBoq})" style="background:${A.editBoq?OR+'20':'var(--card2)'};color:${A.editBoq?OR:'var(--text3)'};border:none;border-radius:16px;padding:6px 14px;font-size:12px;font-weight:500">${A.editBoq?'✓ Done':'Edit rates'}</button>
+        </div>
+      </div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--card2)">${['#','Description','Qty','Unit','Unit Rate','Total'].map(h=>`<th style="padding:9px 14px;font-size:11px;font-weight:500;color:var(--text3);text-align:left;border-bottom:0.5px solid var(--sep)">${h}</th>`).join('')}</tr></thead>
+        <tbody>
+          ${items.map((item,i)=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
+            <td style="padding:10px 14px;font-size:12px;color:var(--text3)">${item.n.split(' ')[0]}</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:500;color:var(--text)">${item.n.substring(4)}</td>
+            <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${item.q}</td>
+            <td style="padding:10px 14px;font-size:13px;color:var(--text3)">${item.u}</td>
+            <td style="padding:10px 14px">${A.editBoq?`<input type="number" value="${item.rate}" onchange="updBOQ(${i},this.value)" style="width:100px;padding:5px 8px;font-size:12px">`:` <span style="font-size:13px;color:var(--text2)">₱${item.rate.toLocaleString()}</span>`}</td>
+            <td style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--text)">₱${item.total.toLocaleString()}</td>
+          </tr>`).join('')}
+          <tr style="background:${OR}0a;border-top:1px solid ${OR}28">
+            <td colspan="5" style="padding:13px 14px;font-size:13px;font-weight:600;color:${OR}">Subtotal (5 of 24 items shown)</td>
+            <td style="padding:13px 14px;font-size:16px;font-weight:700;color:${OR}">₱${tot.toLocaleString()}</td>
+          </tr>
+        </tbody>
+      </table></div>
+    </div>`;
+  }
+
+  else if(A.dashTab==='changeorders'){
+    const ap=A.coItems.filter(c=>c.status==='Approved').reduce((a,c)=>a+c.amount,0);
+    const pn=A.coItems.filter(c=>c.status==='Pending').reduce((a,c)=>a+c.amount,0);
+    const di=A.coItems.filter(c=>c.status==='Disputed').reduce((a,c)=>a+c.amount,0);
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      ${st('✅','Approved',fmtK(ap),GR)}${st('⏳','Pending',fmtK(pn),OR)}${st('⚠️','Disputed',fmtK(di),RD)}
+    </div>
+    <div class="card"><div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Change order register</div>
+      ${A.coItems.map((co,i)=>`<div class="rh" style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:${i<A.coItems.length-1?'0.5px solid var(--sep)':'none'}">
+        <span style="font-size:12px;color:var(--text3);min-width:50px">CO-00${co.id}</span>
+        <div style="flex:1"><div style="font-size:14px;font-weight:500;color:var(--text)">${co.desc}</div><div style="font-size:12px;color:var(--text3)">By ${co.by} · ${co.date}</div></div>
+        <span style="font-size:15px;font-weight:600;color:var(--text)">${fmt(co.amount)}</span>${bdg(co.status,sc(co.status))}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  else if(A.dashTab==='gantt'){
+    const gp=[{n:'Pre-Construction',s:0,d:10,p:100,cr:false,c:IN},{n:'Earthworks & Foundation',s:10,d:20,p:100,cr:true,c:GR},{n:'Structural Works',s:28,d:28,p:65,cr:true,c:OR},{n:'Roofing & Waterproofing',s:56,d:14,p:0,cr:true,c:BL},{n:'MEP Rough-in',s:56,d:14,p:0,cr:false,c:PU},{n:'Finishing Works',s:70,d:28,p:0,cr:true,c:'#FF2D55'},{n:'Punch List & Turnover',s:98,d:7,p:0,cr:true,c:GR}];
+    const T=108,TO=46;
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      ${st('📅','Duration','108 days',BL)}${st('🔴','Critical Phases','5 of 7',RD)}${st('📍','Today','Day 46 / 42%',GR)}
+    </div>
+    <div class="card" style="padding:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:4px;color:var(--text)">Gantt chart — critical path analysis</div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:18px">Red dot = critical path. Any delay in red phases extends project completion.</div>
+      <div style="overflow-x:auto"><div style="min-width:580px;position:relative">
+        <div style="position:absolute;left:calc(150px + ${(TO/T)*70}%);top:0;bottom:0;width:1.5px;background:${RD};opacity:.7;z-index:5">
+          <div style="position:absolute;top:-19px;left:50%;transform:translateX(-50%);background:${RD};color:#fff;font-size:10px;padding:2px 7px;border-radius:5px;white-space:nowrap">Today</div>
+        </div>
+        ${gp.map(ph=>`<div style="display:flex;align-items:center;margin-bottom:8px">
+          <div style="width:150px;flex-shrink:0;padding-right:10px;display:flex;align-items:center;gap:5px">
+            ${ph.cr?`<div style="width:6px;height:6px;border-radius:50%;background:${RD};flex-shrink:0"></div>`:'<div style="width:6px;flex-shrink:0"></div>'}
+            <span style="font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text)">${ph.n}</span>
+          </div>
+          <div style="flex:1;height:24px;position:relative;background:var(--card2);border-radius:6px">
+            ${ph.p>0?`<div style="position:absolute;left:${(ph.s/T)*100}%;width:${(ph.d/T)*100*(ph.p/100)}%;height:100%;background:${ph.c};border-radius:${ph.p===100?6:'6px 0 0 6px'};min-width:3px"></div>`:''}
+            <div style="position:absolute;left:${(ph.s/T)*100+(ph.d/T)*100*(ph.p/100)}%;width:${(ph.d/T)*100*(1-ph.p/100)}%;height:100%;background:${ph.c};opacity:.22;border-radius:${ph.p===0?6:'0 6px 6px 0'}"></div>
+            ${ph.p>0?`<span style="position:absolute;left:${(ph.s/T)*100}%;padding-left:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:500;color:#fff">${ph.p}%</span>`:''}
+          </div>
+          <div style="width:26px;text-align:right;font-size:11px;color:var(--text3);margin-left:8px">${ph.d}d</div>
+        </div>`).join('')}
+      </div></div>
+    </div>`;
+  }
+
+  else if(A.dashTab==='workforce'){
+    const W=[{n:'Eduardo Reyes',t:'Foreman',ti:'6:47 AM',s:'Present',d:5,note:''},{n:'Bernardo Santos',t:'Mason',ti:'7:02 AM',s:'Present',d:4,note:''},{n:'Arvin Dela Cruz',t:'Rebar Works',ti:'—',s:'Absent',d:1,note:'2nd absence'},{n:'Glenn Padilla',t:'Plumber',ti:'—',s:'AWOL',d:0,note:'3 days missing — call now'}];
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      ${st('👷','Total Workers','34',PU)}${st('✅','Present Today','29/34',GR)}${st('💰','Daily Labor Cost','₱38,200',BL)}
+    </div>
+    <div class="card"><div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Today's attendance log</div>
+      <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
+        <thead><tr style="background:var(--card2)">${['Worker','Trade','Time In','Status','Days/Wk','Note'].map(h=>`<th style="padding:9px 14px;font-size:11px;font-weight:500;color:var(--text3);text-align:left;border-bottom:0.5px solid var(--sep)">${h}</th>`).join('')}</tr></thead>
+        <tbody>${W.map(w=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep);background:${w.s==='AWOL'?RD+'05':'transparent'}">
+          <td style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--text)">${w.n}</td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--text3)">${w.t}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${w.ti}</td>
+          <td style="padding:10px 14px">${bdg(w.s,sc(w.s))}</td>
+          <td style="padding:10px 14px;font-size:13px;color:${w.d<3?RD:'var(--text)'}">${w.d}/5</td>
+          <td style="padding:10px 14px;font-size:12px;color:${OR}">${w.note||'—'}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    </div>`;
+  }
+
+  else if(A.dashTab==='safety'){
+    const IT=[['Safety Officer assigned & accredited',true],['CSHP posted on site',true],['All workers have PPE (hardhat, vest, boots)',false],['Safety net on all elevated works',true],['First aid kit stocked & accessible',false],['Fire extinguisher (ABC type) on site',true],['Toolbox meetings held every Monday',true],['Scaffolding tags current & inspected',false]];
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px">
+      ${st('🦺','Days w/o Incident','47 days',GR)}${st('📋','OSH Compliance','74%',OR)}${st('⚠️','Near-Misses (Mar)','3',RD)}
+    </div>
+    <div class="card" style="padding:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:14px;color:var(--text)">DOLE OSH Checklist (R.A. 11058)</div>
+      ${IT.map(([item,done])=>`<div style="display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-bottom:0.5px solid var(--sep)">
+        <div style="width:20px;height:20px;border-radius:6px;border:1.5px solid ${done?GR:RD};background:${done?GR+'18':RD+'10'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:${done?GR:RD}">${done?'✓':'✕'}</div>
+        <span style="font-size:13px;flex:1;color:${done?'var(--text3)':'var(--text)'}">${item}</span>
+        ${!done?`<span style="font-size:11px;background:${RD}20;color:${RD};border-radius:16px;padding:2px 9px;white-space:nowrap">Action needed</span>`:''}
+      </div>`).join('')}
+    </div>`;
+  }
+
+  else if(A.dashTab==='profit'){
+    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px">
+      ${st('💼','Contract',fmtK(p.value),BL)}${st('💸','Est. Cost',fmtK(Math.round(p.value*.87)),OR)}${st('💹','Projected Profit',fmtK(Math.round(p.value*.13)),GR)}${st('📊','CPI Index','1.45',GR)}
+    </div>
+    <div class="card" style="padding:20px">
+      <div style="font-size:14px;font-weight:600;margin-bottom:16px;color:var(--text)">Cost vs budget — live tracking</div>
+      ${[['Materials budget',2550000,322000,BL],['Labor budget',1062500,918000,PU],['Total project',p.value,p.spent,GR]].map(([l,budget,actual,color])=>`<div style="margin-bottom:16px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:5px">
+          <span style="font-size:13px;color:var(--text)">${l}</span>
+          <span style="font-size:13px;font-weight:500;color:var(--text)">${fmtK(actual)} <span style="color:var(--text3);font-weight:400">/ ${fmtK(budget)}</span></span>
+        </div>
+        ${pb(Math.round((actual/budget)*100),color,8)}
+        <div style="font-size:11px;color:var(--text3);margin-top:3px">${Math.round((actual/budget)*100)}% consumed</div>
+      </div>`).join('')}
+    </div>`;
+  }
+
+  return`<div>
+    <div style="background:var(--card2);border-bottom:0.5px solid var(--sep);padding:8px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="display:flex;align-items:center;gap:8px">
+        <div style="width:8px;height:8px;border-radius:50%;background:${hc(p.health)}"></div>
+        <span style="font-size:13px;font-weight:600;color:var(--text)">${p.name}</span>
+        <span style="font-size:12px;color:var(--text3)">— ${p.phase}</span>
+      </div>
+      <button onclick="go('projects')" style="background:none;border:none;font-size:12px;color:var(--text3)">← All Projects</button>
+    </div>
+    <div style="background:var(--card);border-bottom:0.5px solid var(--sep);display:flex;overflow-x:auto;padding:0 16px">
+      ${TB.map(t=>`<button onclick="ss({dashTab:'${t.id}'})" style="display:flex;align-items:center;gap:5px;padding:11px 12px;border:none;background:transparent;font-size:13px;font-weight:${A.dashTab===t.id?500:400};color:${A.dashTab===t.id?BL:'var(--text3)'};border-bottom:${A.dashTab===t.id?`2px solid ${BL}`:'2px solid transparent'};white-space:nowrap"><span style="font-size:13px">${t.icon}</span>${t.l}</button>`).join('')}
+    </div>
+    <div style="max-width:1000px;margin:0 auto;padding:20px" class="fade">${C}</div>
+  </div>`;
+}
+
+function MARKET(){
+  const NT=['All','PRICES','POLICY','ALERT','STEEL','PERMIT','LABOR','MARKET','SAFETY'];
+  const FN=A.newsFilter==='All'?NEWS_DATA:NEWS_DATA.filter(n=>n.tag===A.newsFilter);
+  const URG=NEWS_DATA.filter(n=>n.urgent);
+  return`<div style="max-width:1100px;margin:0 auto;padding:24px 20px">
+    <div style="display:grid;grid-template-columns:1.8fr 1fr;gap:20px">
+      <div>
+        <div style="margin-bottom:16px">
+          <div style="font-size:22px;font-weight:700;letter-spacing:-.02em;margin-bottom:4px;color:var(--text)">PH Construction Market News</div>
+          <div style="font-size:13px;color:var(--text3)">PSA price indices · DOLE advisories · PAGASA alerts · Industry news</div>
+        </div>
+        ${URG.length>0?`<div style="background:${RD}0a;border:0.5px solid ${RD}30;border-radius:13px;padding:14px 18px;margin-bottom:16px">
+          <div style="font-size:12px;font-weight:600;color:${RD};margin-bottom:8px">🚨 URGENT ALERTS — Action Required</div>
+          ${URG.map(n=>`<div style="display:flex;gap:10px;align-items:flex-start;margin-bottom:8px">
+            <span style="background:${n.color}20;color:${n.color};border-radius:10px;padding:1px 7px;font-size:11px;font-weight:500;flex-shrink:0">${n.tag}</span>
+            <span style="font-size:13px;color:var(--text2);line-height:1.45">${n.title}</span>
+          </div>`).join('')}
+        </div>`:''}
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px">
+          ${NT.map(t=>`<button onclick="ss({newsFilter:'${t}'})" style="padding:5px 12px;border-radius:16px;border:none;background:${A.newsFilter===t?BL:BL+'15'};color:${A.newsFilter===t?'#fff':BL};font-size:12px;font-weight:500">${t}</button>`).join('')}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          ${FN.map(n=>`<div class="card" style="padding:20px">
+            <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px;flex-wrap:wrap">
+              <span style="background:${n.color}20;color:${n.color};border-radius:10px;padding:2px 9px;font-size:11px;font-weight:600">${n.tag}</span>
+              ${n.urgent?`<span style="background:${RD}20;color:${RD};border-radius:10px;padding:2px 8px;font-size:10px;font-weight:600">URGENT</span>`:''}
+              <span style="font-size:11px;color:var(--text3);margin-left:auto">${n.date}</span>
+            </div>
+            <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:7px;line-height:1.3">${n.title}</div>
+            <div style="font-size:13px;color:var(--text2);line-height:1.6;margin-bottom:10px">${n.body}</div>
+            <div style="font-size:11px;color:var(--text3)">Source: ${n.source}</div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div>
+        <div style="font-size:18px;font-weight:700;margin-bottom:4px;color:var(--text)">NCR Material Prices</div>
+        <div style="font-size:12px;color:var(--text3);margin-bottom:14px">PSA CMWPI data · March 2025 · Click to expand</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px">
+          ${MKT.map((m,i)=>`<div class="card" style="padding:14px 16px;cursor:pointer;transition:border .2s" onclick="ss({mktDetail:${A.mktDetail===i?null:i}})" onmouseenter="this.style.borderColor='${BL}40'" onmouseleave="this.style.borderColor='var(--sep)'">
+            <div style="display:flex;align-items:center;gap:10px">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${m.name}</div>
+                <div style="font-size:11px;color:var(--text3)">per ${m.unit}</div>
+              </div>
+              <div style="text-align:right;flex-shrink:0">
+                <div style="font-size:16px;font-weight:700;color:var(--text)">₱${m.price}</div>
+                <div style="font-size:11px;font-weight:500;color:${m.change>0?RD:m.change<0?GR:'var(--text3)'}">${m.change>0?'↑ +':m.change<0?'↓ ':''}${m.change}% YoY</div>
+              </div>
+              <div style="font-size:15px;flex-shrink:0">${m.trend==='up'?'📈':m.trend==='down'?'📉':'➡️'}</div>
+            </div>
+            ${A.mktDetail===i?`<div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--sep)">
+              <div style="font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:8px">${m.note}</div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap">
+                ${bdg(m.risk==='Med'?'Moderate Risk':m.risk==='Low'?'Low Risk':'High Risk',m.risk==='High'?RD:m.risk==='Med'?OR:GR)}
+                <span style="font-size:11px;color:var(--text3);align-self:center">Supplier: ${m.supplier}</span>
+              </div>
+            </div>`:''}
+          </div>`).join('')}
+        </div>
+        <div style="background:${BL}0a;border:0.5px solid ${BL}30;border-radius:13px;padding:14px">
+          <div style="font-size:12px;font-weight:600;color:${BL};margin-bottom:6px">📊 PSA CMWPI Summary — Dec 2025</div>
+          <div style="font-size:12px;color:var(--text2);line-height:1.65">Annual CMWPI growth: <strong>+0.8%</strong> YoY. Structural steel: <strong>-3.0%</strong> (favorable). Sand & gravel: <strong>+0.2%</strong>. Painting works: <strong>+0.6%</strong>. Stable market — good conditions for locking in material contracts now.</div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function CLIENT(){
+  const p=A.project||(A.dbProjects||MOCK_PROJECTS)[0];
+  const PT=[['progress','Progress'],['photos','Photos'],['documents','Documents & Signature'],['messages','Messages']];
+  let C='';
+  if(A.portalTab==='progress'){
+    C=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+      <div class="card"><div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Construction phases</div>
+        <div style="padding:14px 18px">${PHASES.map((ph,i)=>`<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+          <div style="width:28px;height:28px;border-radius:50%;border:1.5px solid ${ph.status==='done'?GR:ph.status==='active'?OR:'var(--sep)'};background:${ph.status==='done'?GR+'18':ph.status==='active'?OR+'18':'transparent'};display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;color:${ph.status==='done'?GR:ph.status==='active'?OR:'var(--text4)'};flex-shrink:0">${ph.status==='done'?'✓':ph.status==='active'?'⟳':i+1}</div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+              <span style="font-size:13px;font-weight:${ph.status==='active'?500:400};color:${ph.status==='pending'?'var(--text3)':'var(--text)'}">${ph.name}</span>
+              <span style="font-size:12px;color:${ph.status==='done'?GR:ph.status==='active'?OR:'var(--text4)'}">${ph.pct}%</span>
+            </div>
+            ${pb(ph.pct,ph.status==='done'?GR:ph.status==='active'?OR:'var(--card3)',5)}
+            <div style="font-size:11px;color:var(--text3);margin-top:2px">${ph.date}</div>
+          </div>
+        </div>`).join('')}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px">
+        <div class="card" style="padding:16px">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Upcoming milestones</div>
+          ${[['Apr 18','2nd Floor Slab Pour','Structural',OR],['May 2','Roof Framing Start','Roofing',BL],['May 16','MEP Complete','MEP',PU]].map(([date,title,tag,c])=>`<div style="display:flex;gap:10px;align-items:center;padding:9px 0;border-bottom:0.5px solid var(--sep)"><span style="font-size:13px;font-weight:500;color:${c};min-width:44px">${date}</span><span style="font-size:13px;flex:1;color:var(--text)">${title}</span>${bdg(tag,c)}</div>`).join('')}
+        </div>
+        <div class="card" style="padding:16px">
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Payment schedule</div>
+          ${A.billings.slice(0,4).map(b=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:0.5px solid var(--sep)"><div><div style="font-size:13px;font-weight:500;color:var(--text)">${b.ms}</div><div style="font-size:11px;color:var(--text3)">${fmt(b.amount)} · due ${b.due}</div></div><div style="display:flex;align-items:center;gap:10px">${bdg(b.status,sc(b.status))} ${b.status==='Received'?'':b.paymongo_checkout_url?`<button onclick="window.open('${b.paymongo_checkout_url}','_blank')" style="background:${BL};color:#fff;border:none;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:500;white-space:nowrap">Pay Now →</button>`:`<button onclick="clientPayLink('${b.ref}',${b.amount},'${(b.ms||'').replace(/'/g,'')}')" style="background:${BL};color:#fff;border:none;border-radius:16px;padding:5px 12px;font-size:12px;font-weight:500;white-space:nowrap">Pay Now →</button>`}</div></div>`).join('')}
+        </div>
+      </div>
+    </div>`;
+  }
+  else if(A.portalTab==='photos'){
+    C=`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">${[{d:'Mar 18',ph:'Structural',cap:'Column rebar works Level 1 complete. Ready for concrete pour.',tag:'Milestone'},{d:'Mar 14',ph:'Structural',cap:'CHB wall laying ongoing — East facade 80% complete.',tag:'Progress'},{d:'Mar 7',ph:'Foundation',cap:'Foundation slab poured and cured. Passed inspection.',tag:'Milestone'},{d:'Feb 28',ph:'Earthworks',cap:'Excavation complete. Soil compaction test passed.',tag:'Progress'}].map(u=>`<div class="card">
+      <div style="height:150px;background:var(--card2);display:flex;align-items:center;justify-content:center;position:relative"><span style="font-size:36px">🏗️</span><div style="position:absolute;top:10px;right:10px">${bdg(u.tag,u.tag==='Milestone'?OR:GR)}</div></div>
+      <div style="padding:12px 14px"><div style="display:flex;justify-content:space-between;margin-bottom:5px">${bdg(u.ph,BL)}<span style="font-size:12px;color:var(--text3)">${u.d}</span></div><div style="font-size:13px;color:var(--text2);line-height:1.5">${u.cap}</div></div>
+    </div>`).join('')}</div>`;
+  }
+  else if(A.portalTab==='documents'){
+    C=`<div class="card" style="padding:24px">
+      <div style="font-size:16px;font-weight:700;color:var(--text);margin-bottom:16px">Project Documents</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:16px;background:var(--card2);border:0.5px solid var(--sep);border-radius:12px">
+        <div>
+          <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px">General Contractor Agreement [Draft]</div>
+          <div style="font-size:12px;color:var(--text3)">Awaiting your signature to commence work.</div>
+        </div>
+        ${A.sigSaved?`<div style="font-size:13px;font-weight:600;color:${GR};display:flex;align-items:center;gap:6px">✅ Legally Signed<br><a href="#" style="font-size:10px;color:var(--text3)">View PDF</a></div>`:bt('Review & Sign',"ss({showSigModal:true})","filled",BL)}
+      </div>
+    </div>`;
+  }
+  else{
+    C=`<div class="card" style="display:flex;flex-direction:column">
+      <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);background:var(--card2)">
+        <div style="font-size:14px;font-weight:600;color:var(--text)">Messages — Engr. Dela Cruz</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px"><div style="width:6px;height:6px;border-radius:50%;background:${GR};animation:pulse 2s infinite"></div><span style="font-size:12px;color:${GR}">Online</span></div>
+      </div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;min-height:200px">
+        ${A.messages.map(m=>`<div style="display:flex;justify-content:${m.from==='client'?'flex-end':'flex-start'}">
+          <div style="max-width:72%;background:${m.from==='client'?BL:'var(--card2)'};border-radius:${m.from==='client'?'14px 14px 4px 14px':'14px 14px 14px 4px'};padding:10px 13px">
+            <div style="font-size:13px;color:${m.from==='client'?'#fff':'var(--text)'};line-height:1.5">${m.text}</div>
+            <div style="font-size:11px;color:${m.from==='client'?'rgba(255,255,255,.55)':'var(--text3)'};margin-top:3px;text-align:right">${m.time}</div>
+          </div>
+        </div>`).join('')}
+      </div>
+      <div style="padding:12px 18px;border-top:0.5px solid var(--sep);display:flex;gap:10px">
+        <input type="text" id="mi" placeholder="Message your contractor..." onkeydown="if(event.key==='Enter')sendMsg()">
+        <button onclick="sendMsg()" style="background:${BL};color:#fff;border:none;border-radius:20px;padding:9px 18px;font-size:13px;font-weight:500;flex-shrink:0">Send</button>
+      </div>
+    </div>`;
+  }
+  return`<div>
+    <div style="background:var(--card);border-bottom:0.5px solid var(--sep);padding:13px 20px;display:flex;justify-content:space-between;align-items:center">
+      <div style="display:flex;align-items:center;gap:10px">
+        <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover">
+        <div><div style="font-size:11px;color:var(--text3)">Client progress portal</div><div style="font-size:15px;font-weight:600;color:var(--text)">${p.name}</div></div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:${GR};animation:pulse 2s infinite"></div><span style="font-size:13px;color:${GR};font-weight:500">On Schedule</span></div>
+        <button onclick="go('projects')" style="background:none;border:0.5px solid var(--sep);border-radius:16px;padding:5px 12px;font-size:12px;color:var(--text3)">Back</button>
+      </div>
+    </div>
+    <div style="max-width:900px;margin:0 auto;padding:20px">
+      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+        <div style="background:${BL};border-radius:13px;padding:20px">
+          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em">Overall Progress</div>
+          <div style="font-size:48px;font-weight:700;color:#fff;letter-spacing:-.04em;line-height:1;margin-bottom:10px">${p.pct}%</div>
+          ${pb(p.pct,'rgba(255,255,255,.9)',7)}
+          <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:5px">Week 7 of 19 · Est. completion: Oct 2025</div>
+        </div>
+        ${st('💰','Contract Value',fmtK(p.value),BL)}${st('📅','Next Milestone','Apr 18',OR)}${st('📸','Last Update','Mar 18',GR)}
+      </div>
+      <div style="display:flex;gap:4px;background:var(--card2);border-radius:20px;padding:4px;margin-bottom:20px;width:fit-content">
+        ${PT.map(([id,label])=>`<button onclick="ss({portalTab:'${id}'})" style="padding:7px 18px;border-radius:16px;border:none;background:${A.portalTab===id?'var(--card)':'transparent'};color:var(--text);font-size:13px;font-weight:${A.portalTab===id?500:400};box-shadow:${A.portalTab===id?'var(--sh)':'none'}">${label}</button>`).join('')}
+      </div>
+      <div class="fade">${C}</div>
+    </div>
+  </div>`;
+}
+const AUDIT_LOGS=[{time:'10 mins ago',user:'Engr. Santos',action:'Modified BOQ #102',ip:'192.168.1.1',c:BL},{time:'1 hr ago',user:'Maria Santos (Client)',action:'Signed Contractor Agreement',ip:'112.203.4.5',c:GR},{time:'3 hrs ago',user:'System Auto',action:'Generated Daily PDF Report',ip:'internal',c:OR},{time:'1 day ago',user:'Glenn Padilla',action:'Clocked In (QR Scan)',ip:'Mobile',c:PU}];
+const RBAC_USERS=[{name:'Engr. Juan dela Cruz',email:'juan@construct.ph',role:'Super Admin',status:'Active'},{name:'Engr. Maria Santos',email:'maria@construct.ph',role:'Project Manager',status:'Active'},{name:'Glenn Padilla',email:'glenn@construct.ph',role:'Foreman',status:'Active'},{name:'Jose Cruz',email:'jose@client.com',role:'Client',status:'Invited'}];
+const VENDORS=[{name:'Holcim Philippines',type:'Material Supplier',rating:4.8,status:'Compliant',c:GR},{name:'Pag-asa Steel',type:'Material Supplier',rating:4.9,status:'Compliant',c:GR},{name:'Rizal Hauling Services',type:'Logistics',rating:3.5,status:'Missing Insurance',c:RD},{name:'Apex MEP Contractors',type:'Subcontractor',rating:4.2,status:'Review Pending',c:OR}];
+
+function ADMIN(){
+  const SC=[['global_fin','Global Financials'],['rbac','User Roles & Access'],['vendors','Subcontractor Network'],['templates','Document Templates'],['audit','Security Audit Log']];
+  let C='';
+  const allP = A.dbProjects||MOCK_PROJECTS;
+  if(!A.adminSection||A.adminSection==='overview'||A.adminSection==='testimonials'||A.adminSection==='faqs') A.adminSection='global_fin';
+  
+  if(A.adminSection==='global_fin'){
+    const tVal=allP.reduce((s,p)=>s+(p.value||0),0);
+    const tBilled=allP.reduce((s,p)=>s+(p.billed||0),0);
+    const tRec=allP.reduce((s,p)=>s+(p.received||0),0);
+    const tGap=allP.reduce((s,p)=>s+(p.cashGap||0),0);
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Global Financial Portfolio</div>
+      <div style="font-size:13px;color:var(--text3)">Aggregated command center across all ${allP.length} active projects.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:${BL};border-radius:13px;padding:20px">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">Total Contract Pipeline</div>
+        <div style="font-size:26px;font-weight:700;color:#fff">${fmtK(tVal)}</div>
+      </div>
+      ${st('📄','Total Billed',fmtK(tBilled),PU)}${st('✅','Total Received',fmtK(tRec),GR)}${st('⚠️','Global Cash Gap',fmtK(tGap),tGap>0?RD:GR)}
+    </div>
+    <div class="card" style="padding:16px;overflow-x:auto"><div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:12px">Active Projects Breakdown</div>
+      <table style="width:100%;border-collapse:collapse;min-width:600px">
+        <thead><tr style="background:var(--card2);border-bottom:0.5px solid var(--sep)">${['Project','Client','Value','Billed','Received','Gap','Phase'].map(h=>`<th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--text3);font-weight:500">${h}</th>`).join('')}</tr></thead>
+        <tbody>${allP.map(p=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
+          <td style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--text)">${p.name}</td>
+          <td style="padding:10px 14px;font-size:12px;color:var(--text2)">${p.client}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:500;color:${BL}">${fmtK(p.value)}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--text)">${fmtK(p.billed)}</td>
+          <td style="padding:10px 14px;font-size:13px;color:${GR}">${fmtK(p.received)}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:600;color:${p.cashGap>0?RD:'var(--text2)'}">${fmtK(p.cashGap||0)}</td>
+          <td style="padding:10px 14px">${bdg(p.phase,sc(p.phase))}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+  else if(A.adminSection==='rbac'){
+    C=`<div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Access Control (RBAC)</div><div style="font-size:13px;color:var(--text3)">Manage internal team members and client portal invites.</div></div>
+      ${bt('+ Invite User','',"filled",BL,true)}
+    </div>
+    <div class="card" style="padding:0;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:600px">
+        <thead><tr style="background:var(--card2);border-bottom:0.5px solid var(--sep)">${['Name / Email','Assigned Role','Status','Actions'].map(h=>`<th style="padding:12px 18px;text-align:left;font-size:11px;color:var(--text3);font-weight:500">${h}</th>`).join('')}</tr></thead>
+        <tbody>${RBAC_USERS.map(u=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
+          <td style="padding:14px 18px">
+            <div style="font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px">${u.name}</div>
+            <div style="font-size:12px;color:var(--text3)">${u.email}</div>
+          </td>
+          <td style="padding:14px 18px">${bdg(u.role,u.role==='Super Admin'?PU:u.role==='Client'?OR:BL)}</td>
+          <td style="padding:14px 18px">${bdg(u.status,u.status==='Active'?GR:'var(--text4)')}</td>
+          <td style="padding:14px 18px;font-size:12px"><a href="#" style="color:${BL};text-decoration:none">Edit</a> &middot; <a href="#" style="color:${RD};text-decoration:none">Revoke</a></td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+  else if(A.adminSection==='vendors'){
+    C=`<div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Subcontractor Database</div><div style="font-size:13px;color:var(--text3)">Vetted supplier network and compliance tracking.</div></div>
+      ${bt('+ Add Vendor','',"filled",BL,true)}
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+      ${VENDORS.map(v=>`<div class="card" style="padding:18px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          <div><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:2px">${v.name}</div><div style="font-size:12px;color:var(--text3)">${v.type}</div></div>
+          ${bdg(v.status,v.c)}
+        </div>
+        <div style="display:flex;gap:16px;align-items:center;border-top:0.5px solid var(--sep);padding-top:12px">
+          <div style="font-size:13px;color:var(--text2)">Performance: <strong style="color:${OR}">${'★'.repeat(Math.round(v.rating))}</strong> <span style="font-size:11px">(${v.rating})</span></div>
+          <button style="background:none;border:0.5px solid var(--sep);border-radius:12px;padding:4px 10px;font-size:11px;color:var(--text3);margin-left:auto;cursor:pointer">View Docs</button>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+  else if(A.adminSection==='templates'){
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Standardized Template Engine</div>
+      <div style="font-size:13px;color:var(--text3)">Boilerplate legal contracts and BOQ defaults.</div>
+    </div>
+    <div style="display:grid;gap:12px">
+      ${[['General Contractor Agreement (Default)', 'Legal', 'Last modified by Engr. Santos (2 days ago)', BL],['Standard Subcontractor Agreement', 'Legal', 'Last modified by System (1 mo ago)', OR],['Default Phase 1 Earthworks BOQ', 'BOQ', 'Last modified by Engr. Santos (3 wks ago)', PU]].map(([t,type,m,c])=>`<div class="card rh" style="padding:16px;display:flex;justify-content:space-between;align-items:center;cursor:pointer">
+        <div>
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:4px"><span style="font-size:14px;font-weight:600;color:var(--text)">${t}</span>${bdg(type,c)}</div>
+          <div style="font-size:11px;color:var(--text3)">${m}</div>
+        </div>
+        <div style="font-size:12px;color:${BL};font-weight:500">Edit Template →</div>
+      </div>`).join('')}
+    </div>`;
+  }
+  else if(A.adminSection==='audit'){
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Security Audit Log</div>
+      <div style="font-size:13px;color:var(--text3)">Immutable record of all platform activity and transactions.</div>
+    </div>
+    <div class="card" style="padding:0">
+      ${AUDIT_LOGS.map((a,i)=>`<div style="display:flex;align-items:flex-start;gap:14px;padding:16px 20px;border-bottom:${i<AUDIT_LOGS.length-1?'0.5px solid var(--sep)':'none'}">
+        <div style="width:10px;height:10px;border-radius:50%;background:${a.c};margin-top:5px;flex-shrink:0;box-shadow:0 0 8px ${a.c}80"></div>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">${a.action}</div>
+          <div style="font-size:11px;color:var(--text3)"><span style="font-weight:500;color:var(--text2)">${a.user}</span> &middot; IP: ${a.ip}</div>
+        </div>
+        <div style="font-size:11px;color:var(--text4)">${a.time}</div>
+      </div>`).join('')}
+    </div>`;
+  }
+  return`<div style="display:flex;min-height:600px">
+    <div style="width:200px;background:var(--card2);border-right:0.5px solid var(--sep);padding:16px 12px;flex-shrink:0;display:flex;flex-direction:column">
+      <div style="font-size:14px;font-weight:600;margin-bottom:20px;padding:0 4px;color:var(--text)">Admin Portal</div>
+      ${SC.map(([id,label])=>`<button onclick="ss({adminSection:'${id}'})" style="display:block;width:100%;text-align:left;padding:8px 12px;border-radius:9px;border:none;background:${A.adminSection===id?BL+'20':'transparent'};color:${A.adminSection===id?BL:'var(--text3)'};font-size:13px;font-weight:${A.adminSection===id?500:400};margin-bottom:2px;cursor:pointer;transition:all .15s">${label}</button>`).join('')}
+      <div style="margin-top:auto">${bt('← Back to Demo',"go('landing')",'ghost',null,true)}</div>
+    </div>
+    <div style="flex:1;padding:28px;overflow-y:auto;background:var(--bg)">${C}</div>
+  </div>`;
+}
+
+const SAAS_TENANTS=[
+  {name:'RDC Construction Corp',plan:'Enterprise',mrr:14999,seats:45,storage:'112 GB',status:'Active',since:'Jan 2024'},
+  {name:'Santos Design Build',plan:'Pro',mrr:4999,seats:12,storage:'45 GB',status:'Active',since:'Jun 2024'},
+  {name:'Apex MEP Contractors',plan:'Pro',mrr:4999,seats:8,storage:'12 GB',status:'Active',since:'Nov 2024'},
+  {name:'Lim Properties',plan:'Enterprise',mrr:14999,seats:60,storage:'210 GB',status:'Payment Failed',since:'Feb 2023'},
+  {name:'Cruz Builders Cebu',plan:'Trial',mrr:0,seats:3,storage:'1.2 GB',status:'Trial (3 days left)',since:'Mar 2025'}
+];
+
+function MASTER(){
+  const SC=[['tenants','Tenant Subscriptions'],['onboarding','Verification & KYC'],['whitelabel','White-Label Settings'],['broadcast','Global Broadcasts']];
+  let C='';
+  if(!A.saasSection) A.saasSection='tenants';
+  
+  if(A.saasSection==='tenants'){
+    const tMRR = SAAS_TENANTS.map(t=>t.mrr).reduce((a,b)=>a+b,0);
+    const tSeats = SAAS_TENANTS.map(t=>t.seats).reduce((a,b)=>a+b,0);
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Tenant & Subscription Analytics</div>
+      <div style="font-size:13px;color:var(--text3)">High-level view of all construction companies utilizing ConstructAI.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      <div style="background:linear-gradient(135deg,#000,#333);border-radius:13px;padding:20px">
+        <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em">SaaS Monthly Recurring Revenue</div>
+        <div style="font-size:26px;font-weight:700;color:#00FFA3">₱${(tMRR).toLocaleString()}</div>
+      </div>
+      ${st('🏢','Active Construction Firms',SAAS_TENANTS.length,BL)}
+      ${st('👥','Total Billed Seats',tSeats,PU)}
+    </div>
+    <div class="card" style="padding:16px;overflow-x:auto">
+      <table style="width:100%;border-collapse:collapse;min-width:600px">
+        <thead><tr style="background:var(--card2);border-bottom:0.5px solid var(--sep)">${['Construction Firm','SaaS Plan','MRR','Licensed Seats','Storage Used','Status'].map(h=>`<th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--text3);font-weight:500">${h}</th>`).join('')}</tr></thead>
+        <tbody>${SAAS_TENANTS.map(t=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
+          <td style="padding:10px 14px;font-size:13px;font-weight:600;color:var(--text)">${t.name}<div style="font-size:10px;color:var(--text3);font-weight:400">Customer since ${t.since}</div></td>
+          <td style="padding:10px 14px">${bdg(t.plan,t.plan==='Enterprise'?PU:t.plan==='Pro'?BL:OR)}</td>
+          <td style="padding:10px 14px;font-size:13px;font-weight:500;color:${GR}">₱${t.mrr.toLocaleString()}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${t.seats}</td>
+          <td style="padding:10px 14px;font-size:13px;color:var(--text2)">${t.storage}</td>
+          <td style="padding:10px 14px">${bdg(t.status,t.status==='Active'?GR:t.status==='Payment Failed'?RD:OR)}</td>
+        </tr>`).join('')}</tbody>
+      </table>
+    </div>`;
+  }
+  else if(A.saasSection==='onboarding'){
+    C=`<div style="margin-bottom:24px"><div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">New Tenant KYC & Approval</div><div style="font-size:13px;color:var(--text3)">Verify PCAB licenses for inbound contracting firms.</div></div>
+    <div class="card" style="padding:20px;display:flex;align-items:center;justify-content:space-between;border-left:4px solid ${OR}">
+      <div>
+        <div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:4px">Zeta Builders Inc.</div>
+        <div style="font-size:12px;color:var(--text3)">Signed up 2 hours ago. Selected 'Pro' Plan.</div>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <a href="#" style="font-size:12px;color:${BL};font-weight:500">View PCAB PDF</a>
+        ${bt('Approve & Provision DB',`alert('Tenant Database Provisioned!')`,'filled',GR)}
+        ${bt('Reject','','ghost',RD)}
+      </div>
+    </div>`;
+  }
+  else if(A.saasSection==='whitelabel'){
+    C=`<div style="margin-bottom:24px"><div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Global White-Label Engine</div><div style="font-size:13px;color:var(--text3)">Allow Enterprise tenants to override ConstructAI branding with their own custom domain and logos.</div></div>
+    <div class="card" style="padding:24px;max-width:500px">
+      <div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Select Tenant</div><select><option>RDC Construction Corp</option><option>Lim Properties</option></select></div>
+      <div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Custom Login Domain URL</div><input value="portal.rdcconstruction.ph"></div>
+      <div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Primary Brand Color (Hex)</div><input type="color" value="#cf152d" style="padding:0;height:40px;width:100px;border-radius:4px"></div>
+      <div style="margin-bottom:20px"><label style="display:flex;align-items:center;gap:10px;font-size:13px"><input type="checkbox" checked> Hide "Powered by ConstructAI" badge on client portal</label></div>
+      ${bt('Save Global Settings',`alert('Saved!')`)}
+    </div>`;
+  }
+  else if(A.saasSection==='broadcast'){
+    C=`<div style="margin-bottom:24px"><div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">System-Wide Broadcast Alert</div><div style="font-size:13px;color:var(--text3)">Push an emergency banner to all 72 active contractor dashboard sessions.</div></div>
+    <div class="card" style="padding:24px;max-width:600px;border-color:${RD}">
+      <div style="margin-bottom:16px"><div style="font-size:12px;font-weight:600;margin-bottom:6px;color:${RD}">Alert Message</div><input value="Scheduled Maintenance: Platform will be offline Sunday 2AM-4AM PHT."></div>
+      <div style="margin-bottom:20px"><div style="font-size:12px;font-weight:600;margin-bottom:6px">Alert Type</div><select><option>Warning (Red)</option><option>Info (Blue)</option><option>Success (Green)</option></select></div>
+      ${bt('PUSH TO ALL TENANTS',`alert('Broadcast Sent to 72 active user WebSocket connections!')`,'filled',RD)}
+    </div>`;
+  }
+  
+  return `<div style="display:flex;min-height:600px">
+    <div style="width:230px;background:#111;border-right:1px solid #333;padding:16px 12px;flex-shrink:0;display:flex;flex-direction:column">
+      <div style="font-size:14px;font-weight:800;margin-bottom:20px;padding:0 4px;color:#00FFA3;letter-spacing:1px">SaaS CORE <span style="font-size:10px;color:#888;font-weight:500">v1.0</span></div>
+      ${SC.map(([id,label])=>`<button onclick="ss({saasSection:'${id}'})" style="display:block;width:100%;text-align:left;padding:10px 14px;border-radius:6px;border:none;background:${A.saasSection===id?'#222':'transparent'};color:${A.saasSection===id?'#fff':'#888'};font-size:13px;font-weight:${A.saasSection===id?600:400};margin-bottom:4px;cursor:pointer;transition:all .15s">${label}</button>`).join('')}
+    </div>
+    <div style="flex:1;padding:28px;overflow-y:auto;background:var(--bg)">${C}</div>
+  </div>`;
+}
+
+function render(){
+  const app=document.getElementById('app');
+  document.body.className=A.theme==='light'?'':A.theme;
+  let html=NAV()+TICKER();
+  if(A.view==='landing')html+=LANDING();
+  else if(A.view==='auth')html+=AUTH();
+  else if(A.view==='projects')html+=PROJECTS();
+  else if(A.view==='dashboard')html+=DASHBOARD();
+  else if(A.view==='market')html+=MARKET();
+  else if(A.view==='client')html+=CLIENT();
+  else if(A.view==='admin')html+=ADMIN();
+  else if(A.view==='saas')html+=MASTER();
+  
+  if(A.showSigModal){
+    html+=`<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeUp .2s ease forwards">
+      <div class="card" style="width:100%;max-width:500px;background:var(--card);padding:24px">
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px">Sign Document</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:20px">Please draw your signature below to legally execute the General Contractor Agreement.</div>
+        <div style="border:2px dashed var(--sep);border-radius:12px;background:var(--card2);margin-bottom:20px;position:relative">
+          <canvas id="sig-canvas" width="450" height="200" style="width:100%;height:200px;cursor:crosshair;touch-action:none"></canvas>
+          <button onclick="clearSig()" style="position:absolute;bottom:10px;right:10px;background:var(--card);border:0.5px solid var(--sep);border-radius:12px;padding:4px 10px;font-size:11px;color:var(--text2)">Clear</button>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end">
+          ${bt('Cancel',"ss({showSigModal:false})",'ghost')}
+          ${bt('Approve & Sign',"saveSig()",'filled',GR)}
+        </div>
+      </div>
+    </div>`;
+    setTimeout(initSigPad, 100);
+  }
+  
+  app.innerHTML=html;
+}
+
+function ss(u){Object.assign(A,u);render();}
+function go(v){A.view=v;if(v==='dashboard'&&!A.project)A.project=(A.dbProjects||MOCK_PROJECTS)[0];render();}
+function goDashDemo(){A.user={name:'Engr. Dela Cruz'};A.project=MOCK_PROJECTS[0];A.view='dashboard';A.dashTab='overview';render();}
+
+async function doLogin(){
+  const e=document.getElementById('ae')?.value||'';
+  const p=document.getElementById('ap')?.value||'';
+  const btn=document.getElementById('login-btn');
+  const err=document.getElementById('login-err');
+  if(err){err.textContent='';err.style.display='none';}
+  if(!e||!p){if(err){err.textContent='Please enter email and password.';err.style.display='block';}return;}
+  if(btn){btn.textContent='Signing in…';btn.disabled=true;}
+  const{data,error}=await SB.auth.signInWithPassword({email:e,password:p});
+  if(error){
+    if(err){err.textContent=error.message;err.style.display='block';}
+    if(btn){btn.textContent='Sign In';btn.disabled=false;}
+    return;
+  }
+  A.user={name:data.user.user_metadata?.full_name||e.split('@')[0],email:e,id:data.user.id};
+  await loadUserProjects();
+  ss({view:'projects'});
+}
+
+async function doSignOut(){
+  await SB.auth.signOut();
+  ss({user:null,view:'landing',dbProjects:null,project:null});
+}
+
+async function selectProject(id){
+  const PL=A.dbProjects||MOCK_PROJECTS;
+  // id may be UUID string or number from mock data
+  A.project=PL.find(p=>String(p.id)===String(id))||MOCK_PROJECTS.find(p=>String(p.id)===String(id));
+  if(A.user?.id&&A.dbProjects){await loadProjectData(String(id));}
+  A.view='dashboard';A.dashTab='overview';render();
+}
+
+async function loadUserProjects(){
+  const{data,error}=await SB.from('projects').select('*').order('created_at',{ascending:false});
+  if(!error&&data?.length){
+    A.dbProjects=data.map(p=>({
+      id:p.id,name:p.name,client:p.client_name,location:p.location,
+      value:p.contract_amount||0,spent:p.spent||0,billed:p.billed||0,received:p.received||0,
+      pct:p.progress||0,phase:p.phase||'Pre-Construction',cash_gap:p.cash_gap||0,
+      cashGap:p.cash_gap||0,openPunch:p.open_punch||0,
+      margin:p.margin||0,daysLeft:p.days_left||0,health:p.health||'good'
+    }));
+  }
+}
+
+async function loadProjectData(projectId){
+  const[punches,inv,bills,cos,msgs]=await Promise.all([
+    SB.from('punches').select('*').eq('project_id',projectId).order('created_at'),
+    SB.from('inventory').select('*').eq('project_id',projectId),
+    SB.from('billings').select('*').eq('project_id',projectId).order('created_at'),
+    SB.from('change_orders').select('*').eq('project_id',projectId).order('date',{ascending:false}),
+    SB.from('messages').select('*').eq('project_id',projectId).order('created_at')
+  ]);
+  if(punches.data?.length) A.punches=punches.data;
+  if(inv.data?.length) A.inventory=inv.data;
+  if(bills.data?.length) A.billings=bills.data.map(b=>({...b,ms:b.milestone||b.ms,due:b.due_date||b.due}));
+  if(cos.data?.length) A.coItems=cos.data.map(c=>({...c,desc:c.description,by:c.requested_by}));
+  if(msgs.data?.length) A.messages=msgs.data.map(m=>({from:m.sender,text:m.text,time:new Date(m.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}));
+}
+
+async function initApp(){
+  try{
+    const{data:{session}}=await SB.auth.getSession();
+    if(session){
+      A.user={name:session.user.user_metadata?.full_name||session.user.email.split('@')[0],email:session.user.email,id:session.user.id};
+      await loadUserProjects();
+    }
+  }catch(e){console.warn('Supabase not configured — running in demo mode');}
+  render();
+}
+
+async function genericPayLink(ref,amount,desc,btnTitle){
+  const btn=event?.target;
+  if(btn){btn.textContent='Connecting…';btn.disabled=true;}
+  try{
+    const auth = 'Basic ' + btoa('YOUR_PAYMONGO_TEST_KEY:');
+    const res=await fetch('https://api.paymongo.com/v1/links',{
+      method:'POST',headers:{'Content-Type':'application/json','Authorization':auth},
+      body:JSON.stringify({data:{attributes:{amount:Math.round(amount*100),description:desc}}})
+    });
+    const data=await res.json();
+    if(data.data){
+      const url = data.data.attributes.checkout_url;
+      window.open(url,'_blank');
+      A.billings=A.billings.map(b=>b.ref===ref?{...b,status:'Sent',paymongo_checkout_url:url}:b);
+      render();return;
+    }
+    alert('Payment link error: '+(data.errors?.[0]?.detail||'Unknown'));
+  }catch(e){alert('Could not secure GCash link link. Network error or CORS violation.');}
+  if(btn){btn.textContent=btnTitle;btn.disabled=false;}
+}
+function sendPayLink(ref,amount,desc){ genericPayLink(ref,amount,desc,'Send Link'); }
+function clientPayLink(ref,amount,desc){ genericPayLink(ref,amount,desc,'Pay Now →'); }
+function resolvePunch(id){A.punches=A.punches.map(p=>p.id===id?{...p,status:'Resolved'}:p);render();}
+function addPunch(){const area=document.getElementById('pa')?.value||'';const item=document.getElementById('pi')?.value||'';const trade=document.getElementById('pt')?.value||'';if(!area||!item)return;A.punches.push({id:Date.now(),area,item,trade,priority:'Med',status:'Open',due:'TBD'});A.showPunchForm=false;render();}
+function updBOQ(i,v){const r=[...A.boqRates];r[i]=parseFloat(v)||0;A.boqRates=r;render();}
+function sendMsg(){const input=document.getElementById('mi');const text=input?input.value.trim():'';if(!text)return;A.messages.push({from:'client',text,time:'Just now'});render();setTimeout(()=>{A.messages.push({from:'contractor',text:'Got it! I will update you with the latest status shortly.',time:'Just now'});render();},1200);}
+function saveFaq(){const q=document.getElementById('fq')?.value||'';const a=document.getElementById('fa')?.value||'';if(!q||!a)return;if(A.editFaqIdx!==null){A.faqs=A.faqs.map((f,i)=>i===A.editFaqIdx?{...f,q,a}:f);}else{A.faqs.push({id:Date.now(),q,a});}A.showFaqForm=false;A.editFaqIdx=null;A.editFaqQ='';A.editFaqA='';render();}
+function editFaq(i){const f=A.faqs[i];ss({showFaqForm:true,editFaqIdx:i,editFaqQ:f.q,editFaqA:f.a});}
+function delFaq(i){A.faqs=A.faqs.filter((_,j)=>j!==i);render();}
+function delTestimonial(i){A.testimonials=A.testimonials.filter((_,j)=>j!==i);render();}
+function logDelivery(){const id=parseInt(document.getElementById('dm')?.value);const q=parseFloat(document.getElementById('dq')?.value)||0;if(!id||q<=0)return;A.inventory=A.inventory.map(i=>i.id===id?{...i,delivered:i.delivered+q}:i);A.showDelivery=false;render();}
+function logUsage(){const id=parseInt(document.getElementById('um')?.value);const q=parseFloat(document.getElementById('uq')?.value)||0;if(!id||q<=0)return;A.inventory=A.inventory.map(i=>i.id===id?{...i,used:Math.min(i.delivered,i.used+q)}:i);A.showUsage=false;render();}
+function voteFR(id){A.featureRequests=A.featureRequests.map(f=>f.id===id?{...f,votes:f.votes+1}:f);render();}
+function submitFR(){const title=document.getElementById('frt')?.value||'';const desc=document.getElementById('frd')?.value||'';const name=document.getElementById('frn')?.value||'';const email=document.getElementById('fre')?.value||'';const cat=document.getElementById('frc')?.value||'General';if(!title||!desc)return;A.featureRequests.unshift({id:Date.now(),title,category:cat,description:desc,by:name||'Anonymous',votes:1,status:'In Review',date:'Today'});A.frSubmitted=true;render();}
+function exportBOQ() {
+  const bB=[{n:'1.0 Earthworks & Site Prep',q:1,u:'lot',r:0},{n:'2.0 Concrete Works (3000 PSI)',q:45.5,u:'m³',r:1},{n:'3.0 Reinforcing Steel Gr40',q:3200,u:'kg',r:2},{n:'4.0 Masonry 6" CHB Exterior',q:1250,u:'pcs',r:3},{n:'5.0 Roofing Pre-painted',q:120,u:'sqm',r:4}];
+  const items=bB.map(i=>({...i,rate:A.boqRates[i.r],total:Math.round(i.q*A.boqRates[i.r])}));
+  let csv = "Item No.,Description,Quantity,Unit,Unit Rate,Total Amount\n";
+  items.forEach(i => { csv += `"${i.n.split(' ')[0]}","${i.n.substring(4)}","${i.q}","${i.u}","${i.rate}","${i.total}"\n`; });
+  csv += `,,,,,"Total: ${items.reduce((s,i)=>s+i.total,0)}"\n`;
+  const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement("a");
+  const url = URL.createObjectURL(blob);
+  link.setAttribute("href", url);
+  link.setAttribute("download", "ConstructAI_BOQ.csv");
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+function saveReport(){
+  const w=document.getElementById('dr_w')?.value||'';
+  const h=parseInt(document.getElementById('dr_h')?.value)||0;
+  const e=parseInt(document.getElementById('dr_e')?.value)||0;
+  const p=document.getElementById('dr_p')?.value||'';
+  const v=document.getElementById('dr_v')?.value||'None';
+  const n=document.getElementById('dr_n')?.value||'None';
+  if(!w||!p)return;
+  A.dailyLogs.unshift({d:new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}),w,h,e,p,v:[v],n,c:BL,s:navigator.onLine});
+  localStorage.setItem('dl_cache',JSON.stringify(A.dailyLogs));
+  A.showReportForm=false;
+  render();
+}
+function scanWorker(){
+  const out = A.workers.find(w=>w.s==='Out');
+  if(out){
+    out.s='In'; out.t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    A.scanningQR=false;
+    render();
+    setTimeout(()=>alert(`Success! [${out.id}] ${out.n} clocked in.`), 50);
+  } else {
+    alert('No more workers to scan in demo.');
+  }
+}
+
+async function exportReportPDF(i) {
+  const r = A.dailyLogs[i];
+  const el = document.createElement('div');
+  el.style.padding = '40px';
+  el.style.fontFamily = 'Arial, sans-serif';
+  el.style.color = '#000';
+  el.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #000;padding-bottom:20px;margin-bottom:30px">
+      <div>
+        <h1 style="margin:0;font-size:32px;color:#007AFF">ConstructAI <span style="color:#000">PH</span></h1>
+        <div style="font-size:14px;color:#555;margin-top:5px;letter-spacing:1px;text-transform:uppercase">Official Daily Site Report</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:20px;font-weight:bold;margin-bottom:4px">${r.d}</div>
+        <div style="font-size:15px;color:#555">Project: <strong>${A.project?.name || 'Santos Residence'}</strong></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:40px;margin-bottom:35px;background:#f5f5f7;padding:25px;border-radius:12px">
+      <div><strong style="display:block;font-size:11px;color:#666;margin-bottom:6px">WEATHER CONDITIONS</strong><span style="font-size:18px;font-weight:600">${r.w}</span></div>
+      <div><strong style="display:block;font-size:11px;color:#666;margin-bottom:6px">ACTIVE WORKFORCE</strong><span style="font-size:18px;font-weight:600">${r.h} Personnel</span></div>
+      <div><strong style="display:block;font-size:11px;color:#666;margin-bottom:6px">EQUIPMENT ON-SITE</strong><span style="font-size:18px;font-weight:600">${r.e} Units</span></div>
+    </div>
+    <div style="margin-bottom:30px">
+      <h3 style="border-bottom:1px solid #ddd;padding-bottom:12px;color:#007AFF;font-size:14px;letter-spacing:1px">PROGRESS & WORKFLOW NARRATIVE</h3>
+      <p style="line-height:1.7;font-size:15px;color:#222;margin-top:14px">${r.p}</p>
+    </div>
+    <div style="margin-bottom:30px">
+      <h3 style="border-bottom:1px solid #ddd;padding-bottom:12px;color:#FF9500;font-size:14px;letter-spacing:1px">MATERIAL DELIVERIES LOG</h3>
+      <p style="line-height:1.7;font-size:15px;color:#222;margin-top:14px">${r.v.join(', ')}</p>
+    </div>
+    <div>
+      <h3 style="border-bottom:1px solid #ddd;padding-bottom:12px;color:#34C759;font-size:14px;letter-spacing:1px">SAFETY OBSERVATIONS & INCIDENTS</h3>
+      <p style="line-height:1.7;font-size:15px;color:#222;margin-top:14px">${r.n}</p>
+    </div>
+    <div style="margin-top:100px;display:flex;justify-content:space-between;border-top:1px solid #ccc;padding-top:20px;font-size:13px;color:#555">
+      <div>Generated automatically by ConstructAI PH</div>
+      <div>Project Manager: __________________________</div>
+    </div>
+  `;
+  document.body.appendChild(el);
+  const opt = {
+    margin: [0.5, 0.5, 0.5, 0.5],
+    filename: `Site_Report_${r.d.replace(/,/g,'').replace(/ /g,'_')}.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+  };
+  await html2pdf().set(opt).from(el).save();
+  document.body.removeChild(el);
+}
+
+let sCtx, sDraw=false;
+function initSigPad(){
+  const c=document.getElementById('sig-canvas');
+  if(!c) return;
+  const rect=c.getBoundingClientRect();
+  c.width=rect.width; c.height=rect.height;
+  sCtx=c.getContext('2d');
+  sCtx.strokeStyle=A.theme==='light'?'#000':'#fff';
+  sCtx.lineWidth=2.5; sCtx.lineCap='round';
+  const getP=(e)=>({x:(e.touches?e.touches[0].clientX:e.clientX)-c.getBoundingClientRect().left,y:(e.touches?e.touches[0].clientY:e.clientY)-c.getBoundingClientRect().top});
+  const start=(e)=>{sDraw=true;const p=getP(e);sCtx.beginPath();sCtx.moveTo(p.x,p.y);e.preventDefault();};
+  const move=(e)=>{if(!sDraw)return;const p=getP(e);sCtx.lineTo(p.x,p.y);sCtx.stroke();e.preventDefault();};
+  const end=()=>sDraw=false;
+  c.addEventListener('mousedown',start);c.addEventListener('mousemove',move);window.addEventListener('mouseup',end);
+  c.addEventListener('touchstart',start,{passive:false});c.addEventListener('touchmove',move,{passive:false});window.addEventListener('touchend',end);
+}
+function clearSig(){const c=document.getElementById('sig-canvas');if(c&&sCtx)sCtx.clearRect(0,0,c.width,c.height);}
+function saveSig(){ss({showSigModal:false,sigSaved:true});setTimeout(()=>alert('Document digitally signed sustainably! Agreement is now legally binding.'),50);}
+
+initApp();
+</script>
+</body>
+</html>
