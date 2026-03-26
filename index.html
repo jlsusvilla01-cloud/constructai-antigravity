@@ -7,6 +7,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+<script src="https://js.stripe.com/v3/"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
@@ -43,6 +44,9 @@ button:active{transform:scale(0.97)}
 const SB_URL = 'https://gsthbaydpvxtkxktilyx.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdzdGhiYXlkcHZ4dGt4a3RpbHl4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQ1MTA5NTUsImV4cCI6MjA5MDA4Njk1NX0.LngNYJkcVgnJy2NFBmI2rxa1Mv4lPi7cwOxCGSyM2h0';
 const SB = supabase.createClient(SB_URL, SB_KEY);
+// Replace with your Stripe Publishable Key from dashboard.stripe.com
+const STRIPE_KEY = 'pk_test_placeholder';
+const stripe = typeof Stripe !== 'undefined' ? Stripe(STRIPE_KEY) : null;
 // ─────────────────────────────────────────────────────────────────────────────
 
 const BL='#007AFF',GR='#34C759',OR='#FF9500',RD='#FF3B30',PU='#AF52DE',IN='#5856D6',TE='#5AC8FA';
@@ -268,7 +272,7 @@ function LANDING(){
         <div style="width:8px;height:8px;border-radius:2px;background:${p.color};margin-bottom:10px"></div>
         <div style="font-size:19px;font-weight:700;margin-bottom:4px;color:var(--text)">${p.name}</div>
         <div style="font-size:30px;font-weight:700;color:${p.color};letter-spacing:-.03em;margin-bottom:18px">₱${bA(p).toLocaleString()}<span style="font-size:13px;color:var(--text3);font-weight:400">/mo</span></div>
-        <button onclick="goDashDemo()" style="width:100%;background:${p.popular?p.color:p.color+'20'};color:${p.popular?'#fff':p.color};border:none;border-radius:20px;padding:11px;font-size:14px;font-weight:500;margin-bottom:18px">Get Started</button>
+        <button onclick="checkout('${p.name}',${bA(p)})" style="width:100%;background:${p.popular?p.color:p.color+'20'};color:${p.popular?'#fff':p.color};border:none;border-radius:20px;padding:11px;font-size:14px;font-weight:500;margin-bottom:18px">Get Started</button>
         <div style="border-top:0.5px solid var(--sep);padding-top:14px">
           ${p.features.map(f=>`<div style="display:flex;gap:8px;margin-bottom:8px"><span style="color:${p.color};font-size:13px">✓</span><span style="font-size:13px;color:var(--text2)">${f}</span></div>`).join('')}
         </div>
@@ -1361,6 +1365,20 @@ async function initApp(){
     }
   }catch(e){console.warn('Supabase not configured — running in demo mode');}
   render();
+}
+
+async function checkout(plan, price){
+  if(!stripe){ alert('Stripe is not configured. Redirecting to demo...'); goDashDemo(); return; }
+  const btn = event?.target;
+  if(btn){ btn.textContent='Connecting Stripe...'; btn.disabled=true; }
+  
+  // In a real app, you would call your backend (e.g. Supabase Edge Function) 
+  // to create a Stripe Checkout Session and get the session ID.
+  // For now, we will notify the user and redirect to demo.
+  setTimeout(()=>{
+    alert(`Redirecting to Stripe Checkout for ${plan} (₱${price}/mo)...\n\n[Integration Note]: You need to connect a backend function to create the actual Stripe Checkout Session.`);
+    goDashDemo();
+  }, 1000);
 }
 
 async function genericPayLink(ref,amount,desc,btnTitle){
