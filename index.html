@@ -131,6 +131,8 @@ const MKT=[
   {name:'Paint Elastomeric Ext.',unit:'4L can',price:680,change:+0.6,trend:'up',risk:'Med',supplier:'Asian Paints / Boysen',note:'PSA: painting index +0.6%. Buy per estimate plus 10% buffer.'},
   {name:'Steel Sheet GI #26',unit:'sheet',price:890,change:-1.0,trend:'down',risk:'Low',supplier:'Steel Asia',note:'Hardware & steel casement index -0.1%. Market softening on steel.'},
   {name:'Ready-Mix Concrete',unit:'m³',price:5402,change:+0.5,trend:'up',risk:'Med',supplier:'Holcim ReadyMix',note:'DPWH market rate ₱5,402/m³. Confirm lead time — 3-day advance order required.'},
+  {name:'Diesel (Euro 4 Bulk)',unit:'liter',price:58.45,change:+2.1,trend:'up',risk:'High',supplier:'Shell / Petron Fleet',note:'DOE: Diesel +₱1.20/L next week. Expect 5-8% increase in hauling rates.'},
+  {name:'Hauling (10-Wheeler)',unit:'trip',price:4500,change:+5.0,trend:'up',risk:'High',supplier:'Rizal Haulers',note:'Fuel surge impacting trip rates. Bundle deliveries to optimize cost.'},
 ];
 
 const NEWS_DATA=[
@@ -142,6 +144,9 @@ const NEWS_DATA=[
   {date:'Mar 12, 2025',tag:'LABOR',title:'DOLE Sets New NCR Minimum Daily Wage — Contractors Must Update Payroll',body:'New NCR minimum wage effective March 2025: ₱645/day for non-agricultural workers. Contractors with direct-hire labor must update payroll immediately. Non-compliance subject to DOLE Labor Inspectorate enforcement and penalties.',source:'DOLE Philippines',color:PU,urgent:true},
   {date:'Mar 10, 2025',tag:'MARKET',title:'Holcim Philippines Confirms Stable Cement Prices for Q2 2025',body:'Holcim confirmed no planned price increases for cement in Q2. Current retail: ₱285–₱295 per 40kg bag in NCR. Contractors can plan BOQ without cement price escalation clauses for the next quarter.',source:'Holcim Philippines',color:TE,urgent:false},
   {date:'Mar 8, 2025',tag:'SAFETY',title:'DOLE Issues 47 Stop-Work Orders in NCR in February — OSH Violations',body:'DOLE Labor Inspectorate issued stop-work orders to 47 construction sites in NCR in February 2025 for R.A. 11058 violations. Most common: missing PPE, no CSHP posted, inadequate scaffolding tagging. Administrative fines up to ₱100,000 per day.',source:'DOLE Philippines',color:RD,urgent:true},
+  {date:'Mar 26, 2025',tag:'FUEL',title:'DOE: Diesel Prices Expected to Rise ₱1.20/Liter next Tuesday',body:'Department of Energy monitors global oil surge. Contractors should prepare for a 5-8% increase in hauling and trucking rates for bulk materials like sand, gravel, and rebar. Update logistics budgets immediately.',source:'DOE Philippines',color:OR,urgent:true},
+  {date:'Mar 26, 2025',tag:'PCAB',title:'PCAB Board Res. No. 042: New License Renewal Calendar for FY2026',body:'The Philippine Contractors Accreditation Board released the mandatory renewal schedule. Avoid the ₱5,000 late penalty by filing 60 days before your specific license expiration date. New digital portal now active.',source:'PCAB / CIAP',color:BL,urgent:true},
+  {date:'Mar 25, 2025',tag:'GOVT',title:'PhilGEPS: DPWH Region IV-A Opens Bidding for ₱42M Road Project',body:'Infrastructure Project ID: 25-DPWH-4A-012. Civil works for road widening in Batangas. Deadline for submission of bids: April 15, 2025. Pre-bid conference scheduled for April 2.',source:'PhilGEPS',color:GR,urgent:false},
 ];
 
 const MOCK_PROJECTS=[
@@ -204,6 +209,9 @@ let A={
     {id:1,q:'How does the client portal work?',a:'Clients get a unique secure link to see real-time progress, photos, and milestones. No app download needed.'},
     {id:2,q:'Can I manage multiple projects?',a:'Yes. Pro supports 10 active projects, Enterprise is unlimited. Each has its own dashboard, portal, and billing tracker.'},
     {id:3,q:'Can I cancel anytime?',a:'Monthly billing — cancel anytime, no penalties. Annual gives 2 months free. 14-day trial, no credit card required.'},
+    {id:4,q:'Can I integrate with PhilGEPS?',a:'Yes. Pro & Enterprise plans include a PhilGEPS opportunity scraper that alerts you to new bidding opportunities in your region.'},
+    {id:5,q:'How do you help with PCAB compliance?',a:'ConstructAI tracks your license validity and sends automatic alerts 60 days before renewal is due to prevent late penalties and business disruption.'},
+    {id:6,q:'Why track fuel prices?',a:'Logistics and hauling costs usually impact 15-20% of your project budget. We provide DOE fuel updates so you can adjust your hauling rates in real-time.'},
   ],
   testimonials:[
     {id:1,name:'Engr. Ramon dela Cruz',role:'General Contractor',company:'RDC Construction Corp',location:'Quezon City',rating:5,text:'Before ConstructAI, clients called me 3x a day. Now they check their portal. Disputes dropped to zero.',avatar:'RC'},
