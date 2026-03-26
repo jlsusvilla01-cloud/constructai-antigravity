@@ -46,19 +46,27 @@
 <meta property="twitter:title" content="ConstructAI — The AI Operating System for General Contractors">
 <meta property="twitter:description" content="Replace 10 different spreadsheets with one AI-powered dashboard. Sync billing, workforce, and clients instantly.">
 <meta property="twitter:image" content="https://constructai-antigravity.vercel.app/og-image.png">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
+<link rel="preconnect" href="https://cdn.jsdelivr.net">
+<link rel="preconnect" href="https://cdnjs.cloudflare.com">
+<link rel="preconnect" href="https://js.stripe.com">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js" defer></script>
+<script src="https://js.stripe.com/v3/" defer></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
 <style>
+  #splash{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .4s}
+  .splash-logo{width:80px;height:80px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{transform:scale(1);opacity:0.8}50%{transform:scale(1.1);opacity:1}}
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#F2F2F7;--bg-overlay:rgba(242,242,247,0.88);--card:#fff;--card2:#F2F2F7;--card3:#E5E5EA;--text:#000;--text2:#3c3c43cc;--text3:#3c3c4399;--text4:#3c3c432e;--sep:rgba(60,60,67,.18);--nav:rgba(255,255,255,.92);--sh:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);--input:#F2F2F7;--brand:#007AFF}
 .dark{--bg:#000;--bg-overlay:rgba(0,0,0,0.85);--card:#1c1c1e;--card2:#2c2c2e;--card3:#3a3a3c;--text:#fff;--text2:rgba(235,235,245,.8);--text3:rgba(235,235,245,.6);--text4:rgba(235,235,245,.3);--sep:rgba(84,84,88,.65);--nav:rgba(28,28,30,.95);--sh:none;--input:#2c2c2e;--brand:#007AFF}
 .solana{--bg:#10141f;--bg-overlay:rgba(16,20,31,0.88);--card:#1a2034;--card2:#222841;--card3:#2b3252;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,255,163,.25);--nav:rgba(26,32,52,.95);--sh:none;--input:#222841;--brand:#00FFA3}
 .blueprint{--bg:#001d3d;--bg-overlay:rgba(0,29,61,0.88);--card:#003566;--card2:#004080;--card3:#00509e;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,168,232,.3);--nav:rgba(0,53,102,.95);--sh:none;--input:#004080;--brand:#00a8e8}
-html{background:url('bg.png') no-repeat center center fixed;background-size:cover}
-body{min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-overlay);color:var(--text);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s}
+html{background:#000 url('bg.png') no-repeat center center fixed;background-size:cover}
+body{min-height:100vh;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-overlay);color:var(--text);-webkit-font-smoothing:antialiased;transition:background .3s,color .3s;opacity:0}
+body.loaded{opacity:1}
 ::-webkit-scrollbar{width:5px;height:5px}
 ::-webkit-scrollbar-thumb{background:var(--sep);border-radius:3px}
 .card{background:var(--card);border:0.5px solid var(--sep);border-radius:14px;overflow:hidden;box-shadow:var(--sh)}
@@ -78,7 +86,8 @@ button:active{transform:scale(0.97)}
 .ti:hover{animation-play-state:paused}
 </style>
 </head>
-<body>
+<body class="dark">
+<div id="splash"><img src="logo.png" class="splash-logo"></div>
 <div id="app"></div>
 <script>
 // ─── Supabase client ──────────────────────────────────────────────────────────
@@ -1404,6 +1413,9 @@ function render(){
   }
   
   app.innerHTML=html;
+  document.body.classList.add('loaded');
+  const splash=document.getElementById('splash');
+  if(splash){splash.style.opacity='0';setTimeout(()=>splash.remove(),400);}
 }
 
 function FOOTER(){
