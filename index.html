@@ -240,6 +240,19 @@ let A={
   aiTyping: false,
   aff:{ id:'REF-'+Math.random().toString(36).substr(2,6).toUpperCase(), refs:12, earnings:5840, clicks:248, tier:'Bronze (10%)' },
   payoutRequests: [{id:1,user:'Engr. Diaz',amount:1200,method:'GCash',status:'Pending',date:'Mar 25'}],
+  leads: [
+    {id:1,name:'Atty. Garcia',location:'Forbes Park, Makati',value:45000000,stage:'Architectural Design',source:'Referral',health:'hot',contact:'0917-555-0123'},
+    {id:2,name:'Dr. Wong',location:'Ayala Alabang',value:12000000,stage:'Site Inspection',source:'Website',health:'warm',contact:'0918-555-4567'},
+    {id:3,name:'Tan Commercial Bldg',location:'Quezon City',value:85000000,stage:'Inquiry',source:'Facebook',health:'hot',contact:'0919-555-8888'}
+  ],
+  rfqs: [
+    {id:101,item:'Portland Cement (40kg)',qty:800,budget:295,status:'Bidding Open',bids:[{v:'Holcim',p:285,d:'2 days'},{v:'Republic',p:292,d:'1 day'}]},
+    {id:102,item:'Rebar 12mm Gr40',qty:1200,budget:72,status:'Awarded',bids:[{v:'Pag-asa',p:68,win:true,d:'3 days'},{v:'NatSteel',p:71,d:'2 days'}]},
+  ],
+  pos: [
+    {id:'PO-405',vendor:'Pag-asa Steel',amount:81600,status:'Pending PM Approval',date:'Mar 26'},
+  ],
+  crmStageFilter:'All',
 };
 
 const hc=h=>h==='good'?GR:h==='watch'?OR:RD;
@@ -251,7 +264,7 @@ const pb=(v,c,h=6)=>`<div style="height:${h}px;background:var(--card3);border-ra
 const bt=(label,oc,v='filled',c,sm)=>{const col=c||BL;const bg=v==='filled'?col:v==='tinted'?col+'20':'transparent';const tc=v==='filled'?'#fff':col;return`<button onclick="${oc}" style="background:${bg};color:${tc};border:${v==='ghost'?'0.5px solid var(--sep)':'none'};border-radius:20px;padding:${sm?'5px 12px':'9px 18px'};font-size:${sm?12:13}px;font-weight:500">${label}</button>`;};
 
 function NAV(){
-  const vs=[{id:'landing',l:'Home'},{id:'projects',l:'Projects'},{id:'dashboard',l:'Dashboard'},{id:'client',l:'Client Portal'},{id:'market',l:'Market'},{id:'admin',l:'Admin'},{id:'saas',l:'SaaS Core'}];
+  const vs=[{id:'landing',l:'Home'},{id:'projects',l:'Projects'},{id:'dashboard',l:'Dashboard'},{id:'crm',l:'Sales CRM'},{id:'client',l:'Client Portal'},{id:'market',l:'Market'},{id:'admin',l:'Admin'},{id:'saas',l:'SaaS Core'}];
   return`<nav style="background:var(--nav);backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--sep);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;transition:background .3s">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="go('landing')">
       <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover">
@@ -449,7 +462,7 @@ function PROJECTS(){
 
 function DASHBOARD(){
   const p=A.project||(A.dbProjects||MOCK_PROJECTS)[0];
-  const TB=[{id:'overview',icon:'📊',l:'Overview'},{id:'reports',icon:'📝',l:'Daily Reports'},{id:'cashflow',icon:'💰',l:'Cash Flow'},{id:'inventory',icon:'📦',l:'Live Inventory'},{id:'workforce',icon:'👷',l:'Workforce'},{id:'punch',icon:'✅',l:'Punch List'},{id:'boq',icon:'📄',l:'BOQ'},{id:'changeorders',icon:'🔄',l:'Change Orders'},{id:'gantt',icon:'📅',l:'Timeline'},{id:'safety',icon:'🦺',l:'Safety'},{id:'profit',icon:'💹',l:'Profitability'},{id:'ai',icon:'🤖',l:'AI Brain'},{id:'partners',icon:'🤝',l:'Partners'},{id:'requests',icon:'💡',l:'Feature Requests'}];
+  const TB=[{id:'overview',icon:'📊',l:'Overview'},{id:'reports',icon:'📝',l:'Daily Reports'},{id:'cashflow',icon:'💰',l:'Cash Flow'},{id:'procurement',icon:'🛒',l:'Procurement'},{id:'approvals',icon:'✍️',l:'Approvals'},{id:'inventory',icon:'📦',l:'Live Inventory'},{id:'workforce',icon:'👷',l:'Workforce'},{id:'performance',icon:'📈',l:'Performance'},{id:'punch',icon:'✅',l:'Punch List'},{id:'boq',icon:'📄',l:'BOQ'},{id:'changeorders',icon:'🔄',l:'Change Orders'},{id:'gantt',icon:'📅',l:'Timeline'},{id:'safety',icon:'🦺',l:'Safety'},{id:'profit',icon:'💹',l:'Profitability'},{id:'ai',icon:'🤖',l:'AI Brain'},{id:'partners',icon:'🤝',l:'Partners'},{id:'requests',icon:'💡',l:'Feature Requests'}];
   let C='';
 
   if(A.dashTab==='overview'){
@@ -477,6 +490,96 @@ function DASHBOARD(){
     </div>`;
   }
 
+  else if(A.dashTab==='procurement'){
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px;display:flex;align-items:center;gap:10px">Procurement & RFQ Matrix ${bdg('Enterprise',PU)}</div>
+      <div style="font-size:13px;color:var(--text3)">Blast Requests for Quote (RFQ) to your subcontractor network and compare bids side-by-side.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
+      ${st('🛒','Active RFQs',A.rfqs.filter(r=>r.status==='Bidding Open').length,BL)}
+      ${st('✅','Suppliers Replied',3,GR)}
+      ${st('💰','Est. Savings','₱14,200',OR)}
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      ${A.rfqs.map(r=>`<div class="card" style="padding:0;overflow:hidden">
+        <div style="padding:16px 20px;background:var(--card2);border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-size:15px;font-weight:700;color:var(--text)">${r.item}</div><div style="font-size:11px;color:var(--text3)">Quantity: ${r.qty} · Budget: ${fmt(r.budget)}/unit</div></div>
+          ${bdg(r.status,r.status==='Bidding Open'?OR:GR)}
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse;min-width:500px">
+            <thead><tr style="border-bottom:0.1px solid var(--sep)">${['Vendor','Unit Price','Total','Delivery','Status','Action'].map(h=>`<th style="padding:10px 20px;text-align:left;font-size:11px;color:var(--text4);font-weight:600">${h}</th>`).join('')}</tr></thead>
+            <tbody>${r.bids.map(b=>`<tr style="border-bottom:0.1px solid var(--sep);background:${b.win?GR+'05':'transparent'}">
+              <td style="padding:12px 20px;font-size:13px;font-weight:600;color:var(--text)">${b.v} ${b.win?'✅':''}</td>
+              <td style="padding:12px 20px;font-size:13px;color:${b.p<r.budget?GR:RD}">${fmt(b.p)}</td>
+              <td style="padding:12px 20px;font-size:13px;font-weight:700;color:var(--text)">${fmt(b.p*r.qty)}</td>
+              <td style="padding:12px 20px;font-size:13px;color:var(--text3)">${b.d}</td>
+              <td style="padding:12px 20px">${bdg(b.win?'Awarded':'Quoted',b.win?GR:BL)}</td>
+              <td style="padding:12px 20px">${b.win?bt('PO Issued','','ghost',null,true):bt('Award Bid',`alert('Bid Awarded to ${b.v}!')`,'filled',GR,true)}</td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+  else if(A.dashTab==='approvals'){
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Pending Owner Approvals</div>
+      <div style="font-size:13px;color:var(--text3)">Review and digitally sign high-value Purchase Orders and Project Variations.</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:12px">
+      ${A.pos.map(p=>`<div class="card" style="padding:20px;display:flex;justify-content:space-between;align-items:center;border-left:4px solid ${OR}">
+        <div>
+          <div style="font-size:16px;font-weight:700;color:var(--text)">${p.id}: ${p.vendor}</div>
+          <div style="font-size:13px;color:var(--text2)">Amount: <span style="font-weight:700;color:${GR}">${fmt(p.amount)}</span></div>
+          <div style="font-size:11px;color:var(--text3);margin-top:4px">Requested by PM on ${p.date}</div>
+        </div>
+        <div style="display:flex;gap:10px">
+          ${bt('Review & Sign',`ss({showSigModal:true})`,'filled',BL)}
+          ${bt('Reject','','ghost',RD)}
+        </div>
+      </div>`).join('')}
+    </div>`;
+  }
+  else if(A.dashTab==='performance'){
+    C=`<div style="margin-bottom:24px">
+      <div style="font-size:22px;font-weight:700;color:var(--text);margin-bottom:4px">Weather & Productivity Intelligence</div>
+      <div style="font-size:13px;color:var(--text3)">Correlate weather delays with labor speed to predict final turnover date.</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:24px">
+      <div class="card">
+        <div style="padding:16px 20px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:700">Labor Productivity (Last 7 Days)</div>
+        <div style="padding:20px">
+          ${[['Masonry (Exterior)','3.2 sqm/day','4.0 sqm/day',OR],['Rebar (Structural)','120 kg/day','110 kg/day',GR],['Concrete (Pouring)','8.5 m3/day','8.0 m3/day',GR],['Painting (Priming)','12 sqm/day','15 sqm/day',OR]].map(([t,a,tg,c])=>`<div style="margin-bottom:18px">
+            <div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:600">${t}</span><span style="font-size:12px;color:var(--text3)">Target: ${tg}</span></div>
+            <div style="display:flex;align-items:center;gap:12px">
+              <div style="flex:1;height:8px;background:var(--card3);border-radius:4px;overflow:hidden"><div style="height:100%;width:${(parseFloat(a)/parseFloat(tg))*100}%;background:${c}"></div></div>
+              <span style="font-size:14px;font-weight:700;color:${c}">${a}</span>
+            </div>
+          </div>`).join('')}
+        </div>
+      </div>
+      <div class="card">
+        <div style="padding:16px 20px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:700">Rainfall Impact Tracker (Simulated)</div>
+        <div style="padding:20px">
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px">
+            ${[0,2,42,12,0,0,5].map((mm,i)=>`<div style="text-align:center">
+              <div style="height:60px;background:var(--card3);border-radius:4px;position:relative;display:flex;align-items:flex-end">
+                <div style="width:100%;height:${Math.min(100,mm*2)}%;background:${mm>10?BL:OR};border-radius:4px"></div>
+              </div>
+              <div style="font-size:10px;color:var(--text4);margin-top:4px">Mar ${20+i}</div>
+              <div style="font-size:11px;font-weight:600;color:${mm>10?BL:OR}">${mm}mm</div>
+            </div>`).join('')}
+          </div>
+          <div style="background:${BL}10;padding:12px;border-radius:12px;border:0.5px solid ${BL}30">
+            <div style="font-size:12px;font-weight:700;color:${BL};margin-bottom:4px">Automatic Delay Claim Suggested</div>
+            <div style="font-size:11px;color:var(--text2);line-height:1.4">Mar 22 recorded 42mm precipitation (Heavy Rain). System suggests adding <b>1.5 days extension</b> to 'Structural Works' phase.</div>
+            <button onclick="alert('Delay claim added to logs!')" style="margin-top:10px;background:${BL};color:#fff;border:none;border-radius:8px;padding:4px 10px;font-size:11px;font-weight:600">Apply to Gantt</button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }
   else if(A.dashTab==='reports'){
     const DR=A.dailyLogs;
     const unsynced=DR.filter(x=>!x.s).length;
@@ -1401,6 +1504,7 @@ function render(){
   else if(A.view==='admin')html+=ADMIN();
   else if(A.view==='saas')html+=MASTER();
   else if(A.view==='partners')html+=PARTNERS_PORTAL()+FOOTER();
+  else if(A.view==='crm')html+=CRM()+FOOTER();
   
   if(A.showSigModal){
     html+=`<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeUp .2s ease forwards">
@@ -1495,6 +1599,50 @@ function PARTNERS_PORTAL(){
     </div>
     <div style="margin-top:40px;text-align:center">
        <p style="font-size:13px;color:var(--text3)">Not a partner yet? <a href="#" style="color:${BL};font-weight:600">Register as a Partner</a></p>
+    </div>
+  </div>`;
+}
+
+function CRM(){
+  const stages = ['Inquiry','Site Inspection','Architectural Design','Proposal Sent','Negotiation'];
+  const filter = A.crmStageFilter;
+  const filtered = filter==='All'?A.leads:A.leads.filter(l=>l.stage===filter);
+  
+  return `<div style="max-width:1100px;margin:0 auto;padding:28px 20px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
+      <div>
+        <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--text)">Sales & Leads Engine</div>
+        <div style="font-size:14px;color:var(--text3)">Track potential residential and commercial projects.</div>
+      </div>
+      ${bt('Add New Lead','','filled',BL)}
+    </div>
+    
+    <div style="display:flex;gap:8px;margin-bottom:24px;overflow-x:auto;padding-bottom:10px">
+      ${['All',...stages].map(s=>`<button onclick="ss({crmStageFilter:'${s}'})" style="padding:7px 16px;border-radius:20px;border:none;background:${filter===s?BL+'20':'var(--card2)'};color:${filter===s?BL:'var(--text2)'};font-size:13px;font-weight:500;white-space:nowrap">${s} ${s==='All'?`(${A.leads.length})`:''}</button>`).join('')}
+    </div>
+
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px">
+      ${filtered.map(l=>`<div class="card rh" style="padding:20px;border-left:4px solid ${l.health==='hot'?RD:l.health==='warm'?OR:BL}">
+        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+          ${bdg(l.stage,BL)}
+          <div style="font-size:11px;color:var(--text4);font-weight:600">ID: L-${l.id}</div>
+        </div>
+        <div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px">${l.name}</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:16px"><span style="margin-right:8px">📍</span>${l.location}</div>
+        
+        <div style="background:var(--card2);border-radius:12px;padding:12px;margin-bottom:16px">
+          <div style="font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">Projected Value</div>
+          <div style="font-size:20px;font-weight:800;color:${GR}">${fmt(l.value)}</div>
+        </div>
+        
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-size:12px;color:var(--text2)">Source: <span style="font-weight:600">${l.source}</span></div>
+          <div style="display:flex;gap:8px">
+            <button onclick="alert('Calling ${l.contact}...')" style="background:none;border:none;font-size:18px;cursor:pointer">📞</button>
+            ${bt('View Proposal','','ghost',null,true)}
+          </div>
+        </div>
+      </div>`).join('')}
     </div>
   </div>`;
 }
