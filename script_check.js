@@ -1,112 +1,4 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>ConstructAI ERP — The AI Operating System for Philippine Contractors</title>
-<meta name="description" content="Replace 10 spreadsheets with one AI-powered dashboard. Manage billing, workforce, inventory, and clients in real-time. Built for Philippine general contractors.">
-<meta name="keywords" content="construction ERP Philippines, contractor management software, AI BOQ generator, GCash billing, PCAB compliance, construction finance software">
-<meta name="author" content="ConstructAI">
-<meta name="robots" content="index, follow">
-<meta name="theme-color" content="#007AFF">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="ConstructAI">
-<link rel="canonical" href="https://constructai-antigravity.vercel.app/">
-<link rel="icon" type="image/png" href="favicon.png">
-<link rel="apple-touch-icon" href="favicon.png">
-<link rel="manifest" href="/manifest.json">
 
-<!-- JSON-LD Structured Data for Search Engine Rich Results -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "ConstructAI ERP",
-  "description": "AI-powered ERP for Philippine construction firms. Manage projects, finance, HR, and operations in one platform.",
-  "url": "https://constructai-antigravity.vercel.app/",
-  "operatingSystem": "Web, iOS, Android",
-  "applicationCategory": "BusinessApplication",
-  "offers": [
-    {"@type": "Offer", "name": "Starter", "price": "1990", "priceCurrency": "PHP", "priceSpecification": {"billingIncrement": "P1M"}},
-    {"@type": "Offer", "name": "Pro", "price": "4990", "priceCurrency": "PHP"},
-    {"@type": "Offer", "name": "Enterprise", "price": "9990", "priceCurrency": "PHP"}
-  ],
-  "aggregateRating": {
-    "@type": "AggregateRating",
-    "ratingValue": "4.9",
-    "reviewCount": "247"
-  }
-}
-</script>
-
-<!-- Open Graph / Facebook / LinkedIn -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://constructai-antigravity.vercel.app/">
-<meta property="og:title" content="ConstructAI — The AI Operating System for General Contractors">
-<meta property="og:description" content="Replace 10 different spreadsheets with one AI-powered dashboard. Sync billing, workforce, and clients instantly.">
-<meta property="og:image" content="https://constructai-antigravity.vercel.app/og-image.png">
-
-<!-- Twitter -->
-<meta property="twitter:card" content="summary_large_image">
-<meta property="twitter:url" content="https://constructai-antigravity.vercel.app/">
-<meta property="twitter:title" content="ConstructAI — The AI Operating System for General Contractors">
-<meta property="twitter:description" content="Replace 10 different spreadsheets with one AI-powered dashboard. Sync billing, workforce, and clients instantly.">
-<meta property="twitter:image" content="https://constructai-antigravity.vercel.app/og-image.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="preconnect" href="https://cdn.jsdelivr.net">
-<link rel="preconnect" href="https://cdnjs.cloudflare.com">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
-<script src="https://js.stripe.com/v3/"></script>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css">
-<style>
-  #splash{position:fixed;inset:0;background:#000;z-index:9999;display:flex;align-items:center;justify-content:center;transition:opacity .4s}
-  .splash-logo{width:80px;height:80px;animation:pulse 2s infinite}
-  @keyframes pulse{0%,100%{transform:scale(1);opacity:0.8}50%{transform:scale(1.1);opacity:1}}
-*{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#F2F2F7;--bg-overlay:rgba(242,242,247,0.88);--card:#fff;--card2:#F2F2F7;--card3:#E5E5EA;--text:#000;--text2:#3c3c43cc;--text3:#3c3c4399;--text4:#3c3c432e;--sep:rgba(60,60,67,.18);--nav:rgba(255,255,255,.92);--sh:0 1px 4px rgba(0,0,0,.08),0 4px 16px rgba(0,0,0,.05);--input:#F2F2F7;--brand:#007AFF}
-.dark{--bg:#000;--bg-overlay:rgba(0,0,0,0.85);--card:#1c1c1e;--card2:#2c2c2e;--card3:#3a3a3c;--text:#fff;--text2:rgba(235,235,245,.8);--text3:rgba(235,235,245,.6);--text4:rgba(235,235,245,.3);--sep:rgba(84,84,88,.65);--nav:rgba(28,28,30,.95);--sh:none;--input:#2c2c2e;--brand:#007AFF}
-.solana{--bg:#10141f;--bg-overlay:rgba(16,20,31,0.88);--card:#1a2034;--card2:#222841;--card3:#2b3252;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,255,163,.25);--nav:rgba(26,32,52,.95);--sh:none;--input:#222841;--brand:#00FFA3}
-.blueprint{--bg:#001d3d;--bg-overlay:rgba(0,29,61,0.88);--card:#003566;--card2:#004080;--card3:#00509e;--text:#fff;--text2:rgba(255,255,255,.85);--text3:rgba(255,255,255,.6);--text4:rgba(255,255,255,.3);--sep:rgba(0,168,232,.3);--nav:rgba(0,53,102,.95);--sh:none;--input:#004080;--brand:#00a8e8}
-html{background:#000 url('bg.png') no-repeat center center fixed;background-size:cover}
-body{min-height:100vh;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg-overlay);color:var(--text);-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;transition:background .3s,color .3s;opacity:0}
-body.loaded{opacity:1}
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-thumb{background:var(--sep);border-radius:4px}
-::-webkit-scrollbar-track{background:transparent}
-.card{background:var(--card);border:0.5px solid var(--sep);border-radius:16px;overflow:hidden;box-shadow:var(--sh)}
-.card2{background:var(--card2);border-radius:13px;padding:16px}
-.rh:hover{background:var(--card2)!important;transition:background .15s}
-input,textarea,select{font-family:'Inter',inherit;background:var(--input);border:0.5px solid var(--sep);border-radius:10px;padding:10px 13px;font-size:14px;outline:none;width:100%;color:var(--text);transition:border .2s,box-shadow .2s}
-input:focus,textarea:focus,select:focus{border-color:#007AFF;box-shadow:0 0 0 3px rgba(0,122,255,.1)}
-button{cursor:pointer;font-family:'Inter',inherit;transition:all .18s;-webkit-font-smoothing:antialiased}
-button:hover{filter:brightness(1.06)}
-button:active{transform:scale(0.96)}
-.gradient-text{background:linear-gradient(135deg,#007AFF,#00C7BE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
-@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
-@keyframes fadeIn{from{opacity:0}to{opacity:1}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-@keyframes pulseBeat{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
-@keyframes ticker{0%{transform:translateX(0)}100%{transform:translateX(-50%)}}
-@keyframes scan{0%{top:0}50%{top:220px}100%{top:0}}
-@keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
-.fade{animation:fadeUp .3s ease forwards}
-.tw{overflow:hidden;white-space:nowrap}
-.ti{display:inline-flex;gap:48px;animation:ticker 55s linear infinite}
-.ti:hover{animation-play-state:paused}
-@media (max-width:768px){nav>div:nth-child(2){display:none!important}}
-</style>
-</head>
-<body class="dark">
-<div id="splash"><img src="logo.png" class="splash-logo"></div>
-<div id="app"></div>
-<script>
 // ─── Supabase client ──────────────────────────────────────────────────────────
 // Replace these two values with your own from supabase.com → Project Settings → API
 const SB_URL = 'https://gsthbaydpvxtkxktilyx.supabase.co';
@@ -185,37 +77,7 @@ const PHASES=[
 
 let A={
   theme:'light',view:'landing',user:null,project:null,dbProjects:null,dashTab:'overview',
-  authMode:'signin',finTab:'overview',hrTab:'employees',scTab:'vendors',opsTab:'workorders',
-  refCode: '',
-  showProjectForm:false,
-  showCheckoutModal:false, checkoutPlan:'', checkoutAmount:0,
-  iotSensors:[
-    {id:'S-01',name:'Site Office — Temp/Humidity',temp:31.2,humidity:68,co2:420,wind:12,status:'Normal',last:'2s ago'},
-    {id:'S-02',name:'Basement Level — CO2 Monitor',temp:28.8,humidity:74,co2:1480,wind:0,status:'Alert',last:'5s ago'},
-    {id:'S-03',name:'Rooftop — Weather Station',temp:34.1,humidity:52,co2:390,wind:24,status:'Normal',last:'1s ago'},
-    {id:'S-04',name:'Storage Room — Humidity',temp:29.5,humidity:88,co2:410,wind:0,status:'Warning',last:'8s ago'},
-  ],
-  cameras:[
-    {id:'CAM-01',name:'Main Gate',feed:'rtsp://cam01.local/stream',status:'Live',angle:'Wide 120°'},
-    {id:'CAM-02',name:'Foundation Zone',feed:'rtsp://cam02.local/stream',status:'Live',angle:'PTZ 360°'},
-    {id:'CAM-03',name:'Material Storage',feed:'rtsp://cam03.local/stream',status:'Offline',angle:'Fixed 90°'},
-    {id:'CAM-04',name:'Rooftop',feed:'rtsp://cam04.local/stream',status:'Live',angle:'Wide 150°'},
-  ],
-  intlCurrency:'PHP',exRates:{USD:56.2,EUR:61.4,SGD:41.8},
-  fleet:[
-    {id:'TRK-01',n:'Dump Truck (Isuzu)',status:'Moving',loc:'BGC → Site A',fuel:82,health:95,hours:1240,lastMaint:'Mar 20',gps:[14.54,121.05]},
-    {id:'EXC-02',n:'Excavator (Komatsu)',status:'Idling',loc:'Site B',fuel:45,health:88,hours:3420,lastMaint:'Feb 28',gps:[14.60,121.01]},
-    {id:'GEN-05',n:'Generator 100kVA',status:'Active',loc:'Site A',fuel:92,health:99,hours:450,lastMaint:'Mar 15',gps:[14.54,121.05]},
-  ],
-  estimates:[
-    {id:'EST-902',name:'Santos Perimeter Fence',status:'AI Processing',pct:68,items:42,total:125000},
-    {id:'EST-881',name:'Reyes Bldg Retaining Wall',status:'Ready',pct:100,items:12,total:840000},
-  ],
-  subMarket:[
-    {id:'BID-402',trade:'Mechanical/HVAC',vendor:'FrostControl Ph',quoted:1250000,rating:4.7,compliance:'Verified'},
-    {id:'BID-403',trade:'Fire Protection',vendor:'SafeGuard Systems',quoted:850000,rating:4.9,compliance:'Verified'},
-  ],
-  bimView:false,
+  authMode:'signin',
   workers:[
     {id:'W-001',n:'Ramon Diaz',r:'Lead Mason',s:'In',t:'06:58 AM',p:'https://i.pravatar.cc/150?u=1'},
     {id:'W-002',n:'Luis Reyes',r:'Foreman',s:'In',t:'06:45 AM',p:'https://i.pravatar.cc/150?u=2'},
@@ -266,7 +128,7 @@ let A={
     {id:3,name:'Engr. Jose Reyes',role:'Civil Works',company:'Reyes Civil Works',location:'Cebu City',rating:5,text:'The weather delay tracker helped me claim 12 extra days on a government project. Client accepted immediately.',avatar:'JR'},
     {id:4,name:'Daphne Lim',role:'Property Developer',company:'Lim Properties',location:'Makati',rating:5,text:'I oversee 6 projects at once. ConstructAI shows me which need attention. My accountant loves the billing tracker.',avatar:'DL'},
   ],
-  changeOrders:[
+  coItems:[
     {id:1,desc:'Perimeter fence (CHB)',by:'Client',amount:85000,status:'Approved',date:'Mar 3'},
     {id:2,desc:'Upgrade roofing to GA26',by:'Client',amount:42000,status:'Pending',date:'Mar 10'},
     {id:3,desc:'Relocate kitchen drain',by:'Architect',amount:18500,status:'Disputed',date:'Mar 14'},
@@ -285,12 +147,13 @@ let A={
   newsFilter:'All',mktDetail:null,
   aiChat: [{r:'ai',t:"I am ConstructAI, your project's command center. Ask me anything about Santos Residence, such as material spend, weather delays, or open punch list items."}],
   aiTyping: false,
+  aff:{ id:'REF-'+Math.random().toString(36).substr(2,6).toUpperCase(), refs:12, earnings:5840, clicks:248, tier:'Bronze (10%)' },
   payoutRequests: [{id:1,user:'Engr. Diaz',amount:1200,method:'GCash',status:'Pending',date:'Mar 25'}],
-  aff:{ id:'CONSTRUCT20', refs:12, earnings:28400, clicks:142, tier:'Partner (20%)' },
   leads: [
+    {id:1,name:'Atty. Garcia',location:'Forbes Park, Makati',value:45000000,stage:'Architectural Design',source:'Referral',health:'hot',contact:'0917-555-0123'},
+    {id:2,name:'Dr. Wong',location:'Ayala Alabang',value:12000000,stage:'Site Inspection',source:'Website',health:'warm',contact:'0918-555-4567'},
     {id:3,name:'Tan Commercial Bldg',location:'Quezon City',value:85000000,stage:'Inquiry',source:'Facebook',health:'hot',contact:'0919-555-8888'}
   ],
-  showLeadForm:false,
   rfqs: [
     {id:101,item:'Portland Cement (40kg)',qty:800,budget:295,status:'Bidding Open',bids:[{v:'Holcim',p:285,d:'2 days'},{v:'Republic',p:292,d:'1 day'}]},
     {id:102,item:'Rebar 12mm Gr40',qty:1200,budget:72,status:'Awarded',bids:[{v:'Pag-asa',p:68,win:true,d:'3 days'},{v:'NatSteel',p:71,d:'2 days'}]},
@@ -320,173 +183,29 @@ let A={
     {mat: 'SteelAsia Rebar', trend: 'DOWN', change: '-2.1%', alert: 'Hold for Phase 2', color: GR},
     {mat: 'River Sand', trend: 'STABLE', change: '0%', alert: 'Order upon need', color: BL},
   ],
-  // ERP: Finance & Accounting
-  erpView: 'executive',
-  gl: [
-    {id:'GL-001',acc:'4000 - Revenue',debit:0,credit:4250000,date:'Mar 1',ref:'Santos Residence Contract',type:'Revenue'},
-    {id:'GL-002',acc:'5100 - Direct Labor',debit:420000,credit:0,date:'Mar 12',ref:'Payroll Mar W1',type:'Expense'},
-    {id:'GL-003',acc:'5200 - Materials',debit:285000,credit:0,date:'Mar 14',ref:'PO-405 Pag-asa Steel',type:'Expense'},
-    {id:'GL-004',acc:'5300 - Subcontractors',debit:150000,credit:0,date:'Mar 15',ref:'JP Plumbing Invoice',type:'Expense'},
-    {id:'GL-005',acc:'2100 - Accounts Payable',debit:0,credit:85000,date:'Mar 16',ref:'Dynasty Hardware Invoice',type:'Liability'},
-    {id:'GL-006',acc:'1100 - Accounts Receivable',debit:975000,credit:0,date:'Mar 20',ref:'PR-02 Progress Billing',type:'Asset'},
-  ],
-  finTab: 'overview',
-  accounts: [
-    {code:'1000',name:'Cash & Cash Equivalents',type:'Asset',balance:3420000},
-    {code:'1100',name:'Accounts Receivable',type:'Asset',balance:975000},
-    {code:'1200',name:'Materials Inventory',type:'Asset',balance:408000},
-    {code:'2000',name:'Accounts Payable',type:'Liability',balance:285000},
-    {code:'2100',name:'Retention Payable',type:'Liability',balance:212500},
-    {code:'3000',name:'Owner Equity',type:'Equity',balance:8500000},
-    {code:'4000',name:'Project Revenue',type:'Revenue',balance:33750000},
-    {code:'5000',name:'Cost of Goods Sold',type:'Expense',balance:26840000},
-    {code:'6000',name:'Operating Expenses',type:'Expense',balance:2380000},
-  ],
-  invoices: [
-    {id:'INV-2026-031',client:'Maria Santos',project:'Santos Residence',amount:850000,due:'Mar 20',status:'Overdue',issued:'Mar 1'},
-    {id:'INV-2026-032',client:'Roberto Reyes',project:'Reyes Commercial',amount:3200000,due:'Apr 5',status:'Sent',issued:'Mar 15'},
-    {id:'INV-2026-033',client:'Jose Cruz',project:'Cruz Warehouse',amount:620000,due:'Apr 15',status:'Draft',issued:'Mar 25'},
-  ],
-  // ERP: Human Resources
-  hrTab: 'employees',
-  employees: [
-    {id:'EMP-001',name:'Juone Susvilla',dept:'Management',position:'CEO / General Contractor',salary:180000,status:'Active',hired:'Jan 2020',leave:12,leaveUsed:3,certifications:['PCAB','PRC']},
-    {id:'EMP-002',name:'Ramon Diaz',dept:'Construction',position:'Lead Mason',salary:28000,status:'Active',hired:'Mar 2022',leave:15,leaveUsed:5,certifications:['TESDA NCII']},
-    {id:'EMP-003',name:'Luis Reyes',dept:'Construction',position:'Site Foreman',salary:42000,status:'Active',hired:'Jun 2021',leave:15,leaveUsed:2,certifications:['OSH','TESDA NCIII']},
-    {id:'EMP-004',name:'Carlos Tan',dept:'Electrical',position:'Electrician',salary:35000,status:'Active',hired:'Jan 2023',leave:15,leaveUsed:8,certifications:['PRC EE','OSH']},
-    {id:'EMP-005',name:'Maria Cruz',dept:'Admin',position:'Accounting & Finance',salary:38000,status:'Active',hired:'Feb 2021',leave:15,leaveUsed:1,certifications:['CPA']},
-    {id:'EMP-006',name:'Glenn Padilla',dept:'Plumbing',position:'Licensed Plumber',salary:32000,status:'AWOL',hired:'Aug 2023',leave:15,leaveUsed:12,certifications:['PRC Plumbing']},
-  ],
-  payroll: [
-    {period:'Mar 2026 - W2',total:284000,employees:12,status:'Processed',date:'Mar 22'},
-    {period:'Mar 2026 - W1',total:284000,employees:12,status:'Paid',date:'Mar 15'},
-    {period:'Feb 2026 - W4',total:278000,employees:11,status:'Paid',date:'Mar 8'},
-  ],
-  leaveRequests: [
-    {id:'LR-001',employee:'Carlos Tan',type:'Sick Leave',from:'Mar 24',to:'Mar 25',days:2,status:'Approved'},
-    {id:'LR-002',employee:'Maria Cruz',type:'Vacation Leave',from:'Apr 5',to:'Apr 7',days:3,status:'Pending'},
-    {id:'LR-003',employee:'Ramon Diaz',type:'Emergency Leave',from:'Mar 20',to:'Mar 20',days:1,status:'Approved'},
-  ],
-  // ERP: Supply Chain
-  scTab: 'vendors',
-  vendors: [
-    {id:'V-001',name:'Holcim Philippines',category:'Cement',contact:'0917-555-1001',terms:'Net 15',rating:4.8,status:'Preferred',ytdSpend:1240000},
-    {id:'V-002',name:'Pag-asa Steel',category:'Rebar / Steel',contact:'0918-555-2002',terms:'Net 30',rating:4.5,status:'Preferred',ytdSpend:960000},
-    {id:'V-003',name:'Dynasty Hardware',category:'Hardware & Tools',contact:'0919-555-3003',terms:'Cash on Delivery',rating:3.9,status:'Active',ytdSpend:285000},
-    {id:'V-004',name:'Rizal Haulers',category:'Logistics & Delivery',contact:'0920-555-4004',terms:'Per Trip',rating:4.2,status:'Active',ytdSpend:180000},
-    {id:'V-005',name:'Yuchengco Timber',category:'Wood & Formworks',contact:'0921-555-5005',terms:'Net 7',rating:4.6,status:'Active',ytdSpend:420000},
-  ],
-  purchaseOrders: [
-    {id:'PO-405',vendor:'Pag-asa Steel',items:[{desc:'Rebar 12mm Gr40',qty:1200,unit:'kg',price:68}],total:81600,status:'Pending Approval',date:'Mar 26',project:'Santos Residence'},
-    {id:'PO-404',vendor:'Holcim Philippines',items:[{desc:'Cement Type 1',qty:500,unit:'bags',price:285}],total:142500,status:'Delivered',date:'Mar 20',project:'Reyes Commercial'},
-    {id:'PO-403',vendor:'Dynasty Hardware',items:[{desc:'Assorted Hardware',qty:1,unit:'lot',price:45000}],total:45000,status:'Invoiced',date:'Mar 18',project:'Cruz Warehouse'},
-  ],
-  logistics: [
-    {id:'LOG-001',vendor:'Rizal Haulers',from:'Rizal Province',to:'BGC, Taguig',materials:'Sand & Gravel (5 m³ each)',status:'In Transit',eta:'Mar 27',cost:4500},
-    {id:'LOG-002',vendor:'Rizal Haulers',from:'Pag-asa Steel Depot',to:'QC Site',materials:'Rebar 12mm (1,200 kg)',status:'Scheduled',eta:'Mar 28',cost:4500},
-  ],
-  // ERP: Operations / Manufacturing
-  opsTab: 'workorders',
-  workOrders: [
-    {id:'WO-101',name:'Foundation Slab Pour — Santos',type:'Concrete Works',priority:'Critical',assignedTo:'Luis Reyes',status:'In Progress',start:'Mar 26',end:'Mar 28',pct:65},
-    {id:'WO-102',name:'CHB Wall Laying — Level 2 East',type:'Masonry',priority:'High',assignedTo:'Ramon Diaz',status:'Scheduled',start:'Mar 29',end:'Apr 5',pct:0},
-    {id:'WO-103',name:'Electrical Rough-in — Reyes Bldg L3',type:'Electrical',priority:'High',assignedTo:'Carlos Tan',status:'On Hold',start:'Apr 2',end:'Apr 10',pct:0},
-    {id:'WO-104',name:'Plumbing Rough-in — Cruz Warehouse',type:'Plumbing',priority:'Med',assignedTo:'TBD',status:'Pending Assignment',start:'Apr 5',end:'Apr 12',pct:0},
-  ],
-  equipmentAssets: [
-    {id:'EQ-001',name:'Concrete Mixer 1-Bagger',type:'Equipment',purchase:85000,status:'In Use',project:'Santos Residence',maintenance:'Apr 15',hours:1240},
-    {id:'EQ-002',name:'Plate Compactor',type:'Equipment',purchase:45000,status:'Available',project:null,maintenance:'May 1',hours:560},
-    {id:'EQ-003',name:'Tower Scaffold Set (10 frames)',type:'Temporary Works',purchase:220000,status:'In Use',project:'Reyes Commercial',maintenance:'Jun 1',hours:2100},
-    {id:'EQ-004',name:'Company Pick-up Truck (Hilux)',type:'Vehicle',purchase:1450000,status:'In Use',project:'Multi',maintenance:'Apr 30',hours:85420},
-  ],
-  qualityChecks: [
-    {id:'QC-001',area:'Foundation — Santos',test:'Slump Test (Concrete)',result:'110mm',standard:'75-150mm',status:'Pass',date:'Mar 15',inspector:'Engr. Susvilla'},
-    {id:'QC-002',area:'Structural — Santos',test:'Rebar Spacing Check',result:'200mm c/c',standard:'200mm max',status:'Pass',date:'Mar 20',inspector:'Engr. Reyes'},
-    {id:'QC-003',area:'Masonry — Santos',test:'CHB Wall Alignment',result:'+4mm deviation',standard:'±5mm',status:'Pass',date:'Mar 22',inspector:'Luis Reyes'},
-    {id:'QC-004',area:'Roofing — Reyes Bldg',test:'Waterproofing Test',result:'2 leaks detected',standard:'Zero leaks',status:'Fail',date:'Mar 25',inspector:'Engr. Susvilla'},
-  ],
-  fleet: [
-    {id:'FT-001',n:'Dump Truck — Isuzu Giga',loc:'Cainta, Rizal',fuel:45,health:92,status:'Moving',lastMaint:'Mar 10'},
-    {id:'FT-002',n:'Excavator — Cat 320',loc:'Santos Site, QC',fuel:15,health:88,status:'Idling',lastMaint:'Mar 15'},
-    {id:'FT-003',n:'Concrete Pump Truck',loc:'Mandala Park, Mandaluyong',fuel:82,health:96,status:'Moving',lastMaint:'Mar 20'},
-    {id:'FT-004',n:'Service Pickup (Hilux)',loc:'ConstructAI Taguig HQ',fuel:68,health:94,status:'Parked',lastMaint:'Mar 22'},
-  ],
-  simulationActive:true, cmdkOpen:false, cmdkQuery:'',
-  attendance:[], gl_entries:[], invoices:[], subscription_events:[],
 };
-function simulateHardware(){
-  if(!A.simulationActive)return;
-  A.iotSensors=A.iotSensors.map(s=>({
-    ...s,
-    temp:+(s.temp+(Math.random()*0.4-0.2)).toFixed(1),
-    humidity:Math.max(0,Math.min(100,+(s.humidity+(Math.random()*2-1)).toFixed(0))),
-    co2:Math.max(300,+(s.co2+(Math.random()*20-10)).toFixed(0)),
-    status:s.co2>1400?'Alert':s.humidity>85?'Warning':'Normal'
-  }));
-  A.fleet=A.fleet.map(v=>{
-    if(v.status==='Moving'){
-      const newFuel=Math.max(0,v.fuel-0.02);
-      return {...v, fuel:newFuel, status:newFuel<=0?'Parked':v.status};
-    }
-    return v;
-  });
-  ss();
-}
-setInterval(simulateHardware,5000);
 
 const hc=h=>h==='good'?GR:h==='watch'?OR:RD;
 const sc=s=>({Received:GR,Pass:GR,Approved:GR,Resolved:GR,Completed:GR,done:GR,Partial:OR,Pending:OR,'In Review':OR,'Not Due':'#8e8e93',Fail:RD,Disputed:RD,Open:OR,AWOL:RD,Planned:BL}[s]||'#8e8e93');
 const bdg=(t,c)=>`<span style="background:${c}20;color:${c};border-radius:20px;padding:2px 10px;font-size:12px;font-weight:500;white-space:nowrap">${t}</span>`;
 const cd=(html,style='')=>`<div class="card" style="${style}">${html}</div>`;
 const st=(icon,label,val,color)=>`<div class="card2"><div style="font-size:20px;margin-bottom:8px">${icon}</div><div style="font-size:22px;font-weight:700;color:${color};margin-bottom:2px;letter-spacing:-.02em">${val}</div><div style="font-size:13px;color:var(--text3)">${label}</div></div>`;
-const cl=(v,min,max)=>Math.max(min,Math.min(max,v));
 const pb=(v,c,h=6)=>`<div style="height:${h}px;background:var(--card3);border-radius:${h}px;overflow:hidden"><div style="height:100%;width:${cl(v,0,100)}%;background:${c};border-radius:${h}px;transition:width .8s ease"></div></div>`;
-const bt=(label,oc,v='filled',c,sm)=>{const col=c||BL;const bg=v==='filled'?col:v==='tinted'?col+'20':'transparent';const tc=v==='filled'?'#fff':col;return`<button onclick="${oc}" style="background:${bg};color:${tc};border:${v==='ghost'?'0.5px solid var(--sep)':'none'};border-radius:20px;padding:${sm?'5px 12px':'9px 18px'};font-size:${sm?12:13}px;font-weight:500;white-space:nowrap">${label}</button>`;};
-
-function CMDK(){
-  if(!A.cmdkOpen)return'';
-  const acts=[
-    {l:'Go to Dashboard',icon:'🏠',a:()=>go('dash')},
-    {l:'Go to Finance',icon:'💰',a:()=>go('fin')},
-    {l:'Go to Operations',icon:'⚙️',a:()=>go('ops')},
-    {l:'Add New Lead',icon:'➕',a:()=>ss({view:'dash',dashTab:'crm'})},
-    {l:'Create Invoice',icon:'🧾',a:()=>ss({view:'fin',finTab:'billing'})},
-    {l:'Toggle Simulation',icon:'🤖',a:()=>ss({simulationActive:!A.simulationActive,cmdkOpen:false})},
-    {l:'Switch Theme',icon:'🌓',a:()=>ss({theme:A.theme==='light'?'dark':'light'})},
-  ].filter(x=>x.l.toLowerCase().includes(A.cmdkQuery.toLowerCase()));
-  return`<div id="cmdk" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);backdrop-filter:blur(4px);z-index:10000;display:flex;align-items:flex-start;justify-content:center;padding-top:15vh" onclick="if(event.target.id==='cmdk')ss({cmdkOpen:false})">
-    <div class="card fade" style="width:100%;max-width:540px;background:var(--card);box-shadow:0 30px 60px rgba(0,0,0,0.3)">
-      <div style="padding:16px;border-bottom:0.5px solid var(--sep)"><input id="cmdkInp" autofocus placeholder="Type a command or search..." oninput="ss({cmdkQuery:this.value})" value="${A.cmdkQuery}" style="font-size:16px;border:none;background:transparent;padding:0"></div>
-      <div style="max-height:300px;overflow-y:auto;padding:8px">
-        ${acts.length?acts.map((x,i)=>`<div class="rh" style="padding:12px 16px;border-radius:10px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="${x.a};ss({cmdkOpen:false,cmdkQuery:''})"><span style="font-size:18px">${x.icon}</span><span style="font-weight:500">${x.l}</span><span style="margin-left:auto;font-size:11px;color:var(--text3);background:var(--card2);padding:2px 6px;border-radius:4px">Enter</span></div>`).join(''):`<div style="padding:20px;text-align:center;color:var(--text3);font-size:14px">No commands found</div>`}
-      </div>
-      <div style="padding:12px 16px;background:var(--card2);font-size:11px;color:var(--text3);display:flex;gap:16px"><span>↑↓ to navigate</span><span>↵ to select</span><span>esc to close</span></div>
-    </div>
-  </div>`;
-}
-window.onkeydown=e=>{
-  if((e.ctrlKey||e.metaKey)&&e.key==='k'){e.preventDefault();ss({cmdkOpen:!A.cmdkOpen,cmdkQuery:''});setTimeout(()=>document.getElementById('cmdkInp')?.focus(),50);}
-  if(e.key==='Escape')ss({cmdkOpen:false});
-};
+const bt=(label,oc,v='filled',c,sm)=>{const col=c||BL;const bg=v==='filled'?col:v==='tinted'?col+'20':'transparent';const tc=v==='filled'?'#fff':col;return`<button onclick="${oc}" style="background:${bg};color:${tc};border:${v==='ghost'?'0.5px solid var(--sep)':'none'};border-radius:20px;padding:${sm?'5px 12px':'9px 18px'};font-size:${sm?12:13}px;font-weight:500">${label}</button>`;};
 
 function NAV(){
-  const ERP=[{id:'erp',l:'ERP Hub',icon:'🏢'},{id:'finance',l:'Finance',icon:'💰'},{id:'hr',l:'HR & Payroll',icon:'👥'},{id:'supply',l:'Supply Chain',icon:'🚚'},{id:'operations',l:'Operations',icon:'⚙️'}];
-  const TOOLS=[{id:'dashboard',l:'Projects'},{id:'crm',l:'CRM'},{id:'market',l:'Market'},{id:'client',l:'Portal'},{id:'admin',l:'Admin'}];
-  const isErp = ['erp','finance','hr','supply','operations'].includes(A.view);
-  return`<nav style="background:var(--nav);backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--sep);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;transition:background .3s">
+  const vs=[{id:'landing',l:'Home'},{id:'projects',l:'Projects'},{id:'dashboard',l:'Dashboard'},{id:'crm',l:'Sales CRM'},{id:'client',l:'Client Portal'},{id:'market',l:'Market'},{id:'admin',l:'Admin'},{id:'saas',l:'SaaS Core'}];
+  return`<nav style="background:var(--nav);backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--sep);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;transition:background .3s">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="go('landing')">
       <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover">
-      <span style="font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)">ConstructAI <span style="color:${BL}">ERP</span></span>
+      <span style="font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)">ConstructAI <span style="color:${BL}">PH</span></span>
     </div>
-    <div style="display:flex;gap:1px;overflow-x:auto">
-      <div style="display:flex;align-items:center;gap:1px;border-right:0.5px solid var(--sep);padding-right:8px;margin-right:6px">
-        ${ERP.map(v=>`<button onclick="go('${v.id}')" style="padding:5px 10px;border-radius:14px;border:none;background:${A.view===v.id?BL+'20':'transparent'};color:${A.view===v.id?BL:'var(--text3)'};font-size:12px;font-weight:${A.view===v.id?600:400};display:flex;align-items:center;gap:4px;white-space:nowrap">${v.icon} ${v.l}</button>`).join('')}
-      </div>
-      ${TOOLS.map(v=>`<button onclick="go('${v.id}')" style="padding:5px 10px;border-radius:14px;border:none;background:${A.view===v.id?OR+'20':'transparent'};color:${A.view===v.id?OR:'var(--text3)'};font-size:12px;font-weight:${A.view===v.id?600:400};white-space:nowrap">${v.l}</button>`).join('')}
+    <div style="display:flex;gap:2px">
+      ${vs.map(v=>`<button onclick="go('${v.id}')" style="padding:6px 12px;border-radius:16px;border:none;background:${A.view===v.id?BL+'20':'transparent'};color:${A.view===v.id?BL:'var(--text3)'};font-size:13px;font-weight:${A.view===v.id?500:400}">${v.l}</button>`).join('')}
     </div>
-    <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
-      <button onclick="const tm={light:'dark',dark:'solana',solana:'blueprint',blueprint:'light'};ss({theme:tm[A.theme]})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:20px;padding:4px 10px;font-size:11px;font-weight:500;color:var(--text2)">${{light:'☀️',dark:'🌙',solana:'🟩',blueprint:'📐'}[A.theme]}</button>
-      ${A.user?`<span style="font-size:11px;color:var(--text3)">${A.user.name}</span>${bt('Sign Out','doSignOut()','ghost',null,true)}`:bt('Sign In',"go('auth')",'tinted',BL,true)}
+    <div style="display:flex;gap:8px;align-items:center">
+      <button onclick="const tm={light:'dark',dark:'solana',solana:'blueprint',blueprint:'light'};ss({theme:tm[A.theme]})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:20px;padding:5px 13px;font-size:13px;font-weight:500;color:var(--text2)">${{light:'☀️ Light',dark:'🌙 Dark',solana:'🟩 Solana',blueprint:'📐 Blueprint'}[A.theme]}</button>
+      ${A.user?`<span style="font-size:12px;color:var(--text3)">${A.user.name}</span>${bt('Sign Out','doSignOut()','ghost',null,true)}`:bt('Sign In',"go('auth')",'tinted',BL,true)}
     </div>
   </nav>`;
 }
@@ -499,39 +218,35 @@ function TICKER(){
 function LANDING(){
   const bA=p=>A.billing==='annual'?p.annual:p.monthly;
   const PL=[
-    {name:'Starter',monthly:1990,annual:1590,color:BL,stripeMo:'#',stripeYr:'#',features:['3 active projects','Client progress portal','BOQ & billing tracker','Material inventory','Change order log','Email support']},
-    {name:'Pro',monthly:4990,annual:3990,color:OR,popular:true,stripeMo:'#',stripeYr:'#',features:['10 active projects','Everything in Starter','Workforce attendance','Weather delay tracker','Safety OSH compliance','AI BOQ Generator','Market news feed','Priority support']},
-    {name:'Enterprise',monthly:9990,annual:7990,color:GR,stripeMo:'#',stripeYr:'#',features:['Unlimited projects','Everything in Pro','Multi-project dashboard','5 team users','E-signature module','GCash/Maya payments','API access','Dedicated account manager']},
+    {name:'Starter',monthly:990,annual:790,color:BL,stripeMo:'#',stripeYr:'#',features:['3 active projects','Client progress portal','BOQ & billing tracker','Material inventory','Change order log','Email support']},
+    {name:'Pro',monthly:2490,annual:1990,color:OR,popular:true,stripeMo:'#',stripeYr:'#',features:['10 active projects','Everything in Starter','Workforce attendance','Weather delay tracker','Safety OSH compliance','AI BOQ Generator','Market news feed','Priority support']},
+    {name:'Enterprise',monthly:5990,annual:4790,color:GR,stripeMo:'#',stripeYr:'#',features:['Unlimited projects','Everything in Pro','Multi-project dashboard','5 team users','E-signature module','GCash/Maya payments','API access','Dedicated account manager']},
   ];
   const FT=[
     {icon:'📊',title:'Live Client Portal',desc:'Clients see real-time progress, photos, milestones. No more 3-calls-a-day.',color:BL},
     {icon:'💰',title:'Cash Flow Tracker',desc:'CIAP 102 billing milestones. Know exactly what\'s billed vs collected.',color:GR},
-    {icon:'🎟️',title:'20% Partner Program',desc:'Refer a fellow contractor and earn recurring commission for life.',color:OR},
+    {icon:'📦',title:'Live Material Inventory',desc:'Real-time delivery and usage tracking. Low-stock alerts. Variance detection.',color:OR},
     {icon:'📰',title:'Market News Feed',desc:'PSA price indices, DOLE advisories, PAGASA alerts, and industry news.',color:TE},
     {icon:'👷',title:'Workforce Attendance',desc:'Daily headcount, AWOL alerts, anti-ghost worker checklist.',color:PU},
     {icon:'💡',title:'Feature Requests',desc:'Vote on features. Most-voted get built first. Submit your own ideas.',color:IN},
     {icon:'🦺',title:'DOLE OSH Compliance',desc:'R.A. 11058 checklist. Track incidents. Avoid ₱100k/day fines.',color:RD},
     {icon:'🤖',title:'AI BOQ Generator',desc:'Input area and finish level — complete BOQ in 30 seconds.',color:OR},
   ];
-  return`<div style="max-width:940px;margin:0 auto;padding:0 20px 60px">
-    <div style="text-align:center;padding:60px 20px 48px">
-      <div style="display:inline-flex;align-items:center;gap:8px;background:${BL}15;border:0.5px solid ${BL}30;border-radius:20px;padding:5px 16px;margin-bottom:24px;animation:float 4s ease-in-out infinite">
-        <div style="width:7px;height:7px;border-radius:50%;background:${GR};animation:pulseBeat 2s infinite"></div>
-        <span style="font-size:13px;color:${BL};font-weight:600">🇵🇭 Built for Philippine Contractors</span>
+  return`<div style="max-width:920px;margin:0 auto;padding:0 20px 60px">
+    <div style="text-align:center;padding:52px 20px 44px">
+      <div style="display:inline-flex;align-items:center;gap:8px;background:${BL}15;border:0.5px solid ${BL}30;border-radius:20px;padding:5px 14px;margin-bottom:20px">
+        <div style="width:7px;height:7px;border-radius:50%;background:${GR};animation:pulse 2s infinite"></div>
+        <span style="font-size:13px;color:${BL};font-weight:500">🇵🇭 Built for Philippine Contractors</span>
       </div>
-      <h1 style="font-size:clamp(32px,5.5vw,58px);font-weight:800;line-height:1.06;letter-spacing:-.04em;margin-bottom:18px;color:var(--text)">Your client sees progress,<br><span style="background:linear-gradient(135deg,${BL},#00C7BE);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">not problems.</span></h1>
-      <p style="font-size:17px;color:var(--text2);max-width:500px;margin:0 auto 32px;line-height:1.65;font-weight:400">The all-in-one AI construction operating system for Philippine general contractors. From BOQ to turnover.</p>
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:14px">
-        <button onclick="goDashDemo()" style="background:${BL};color:#fff;border:none;border-radius:24px;padding:14px 28px;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;box-shadow:0 6px 24px ${BL}40">🚀 Start Free Trial — Open App</button>
-        <button onclick="go('market')" style="background:transparent;color:var(--text);border:1px solid var(--sep);border-radius:24px;padding:14px 24px;font-size:15px;font-weight:500">📊 View Live Market Prices</button>
+      <h1 style="font-size:clamp(30px,5vw,52px);font-weight:700;line-height:1.08;letter-spacing:-.04em;margin-bottom:16px;color:var(--text)">Your client sees progress,<br><span style="color:${BL}">not problems.</span></h1>
+      <p style="font-size:16px;color:var(--text2);max-width:480px;margin:0 auto 28px;line-height:1.6">The all-in-one construction management platform for Philippine contractors.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-bottom:12px">
+        ${bt('Start Free Trial — Open App','goDashDemo()')}${bt('View Market Prices',"go('market')",'ghost')}
       </div>
-      <p style="font-size:12px;color:var(--text4);letter-spacing:.01em">14-day free trial · No credit card · Cancel anytime</p>
-      <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap;margin-top:24px">
-        ${['PCAB Compliant','DOLE OSH Ready','GCash & Maya','AI-Powered','ISO 9001 Aligned'].map(b=>`<span style="font-size:11px;color:var(--text3);background:var(--card2);border:0.5px solid var(--sep);border-radius:20px;padding:4px 12px;font-weight:500">✓ ${b}</span>`).join('')}
-      </div>
+      <p style="font-size:12px;color:var(--text4)">14-day free trial · No credit card · Cancel anytime</p>
     </div>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:40px">
-      ${[['2,400+','Active Contractors'],['₱12.8B','Projects Managed'],['4.9★','App Rating'],['Zero','Billing Disputes']].map(([v,l])=>`<div style="text-align:center;background:var(--card);border:0.5px solid var(--sep);border-radius:16px;padding:18px;transition:transform .2s" onmouseenter="this.style.transform='translateY(-2px)'" onmouseleave="this.style.transform='none'"><div style="font-size:26px;font-weight:800;color:${BL};letter-spacing:-.03em;margin-bottom:4px">${v}</div><div style="font-size:13px;color:var(--text3)">${l}</div></div>`).join('')}
+      ${[['1,200+','Active Contractors'],['₱4.8B','Projects Managed'],['94%','Client Satisfaction'],['Zero','Billing Disputes']].map(([v,l])=>`<div style="text-align:center;background:var(--card);border:0.5px solid var(--sep);border-radius:13px;padding:16px"><div style="font-size:26px;font-weight:700;color:${BL};letter-spacing:-.03em;margin-bottom:4px">${v}</div><div style="font-size:13px;color:var(--text3)">${l}</div></div>`).join('')}
     </div>
     <h2 style="font-size:22px;font-weight:700;text-align:center;margin-bottom:18px;color:var(--text)">Features built for real contractor problems</h2>
     <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:44px">
@@ -598,10 +313,7 @@ function AUTH(){
         <div style="font-size:13px;color:var(--text3)">${isUp?'Join the ConstructAI ecosystem':'Sign in with your contractor account'}</div>
       </div>
       <div class="card" style="padding:28px">
-        ${isUp?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px">
-          <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Full Name</div><input type="text" id="an" placeholder="Juan dela Cruz"></div>
-          <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Referral Code (Optional)</div><input type="text" id="arc" placeholder="CONSTRUCT20" style="text-transform:uppercase"></div>
-        </div>`:''}
+        ${isUp?`<div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Full Name</div><input type="text" id="an" placeholder="Juan dela Cruz"></div>`:''}
         <div style="margin-bottom:14px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Email</div><input type="email" id="ae" placeholder="you@company.com"></div>
         <div style="margin-bottom:16px"><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Password</div><input type="password" id="ap" placeholder="••••••••" onkeydown="if(event.key==='Enter')${isUp?'doSignUp()':'doLogin()'}"></div>
         
@@ -635,29 +347,10 @@ function PROJECTS(){
   const PL=A.dbProjects||MOCK_PROJECTS;
   const total=PL.reduce((a,p)=>a+p.value,0);
   return`<div style="max-width:860px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:22px">
-      <div>
-        <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;color:var(--text)">Your Projects</div>
-        <div style="font-size:14px;color:var(--text3)">Select a project to open its dashboard</div>
-      </div>
-      ${bt('+ Create Project','ss({showProjectForm:true})','filled',BL)}
+    <div style="margin-bottom:22px">
+      <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;margin-bottom:4px;color:var(--text)">Your Projects</div>
+      <div style="font-size:14px;color:var(--text3)">Select a project to open its dashboard</div>
     </div>
-    
-    ${A.showProjectForm?`<div class="card" style="padding:24px;margin-bottom:24px;background:var(--card2);border:1px solid ${BL}40">
-      <div style="font-size:18px;font-weight:700;margin-bottom:16px">Provision New Project</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Project Name</div><input id="p_n" placeholder="Santos Residence"></div>
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Client Name</div><input id="p_c" placeholder="Maria Santos"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:10fr 4fr;gap:12px;margin-bottom:12px">
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Location</div><input id="p_l" placeholder="BGC, Taguig"></div>
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Contract Value</div><input type="number" id="p_v" placeholder="4250000"></div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:20px">
-        ${bt('Initialize Project','doAddProject()','filled',BL)}
-        ${bt('Cancel','ss({showProjectForm:false})','ghost')}
-      </div>
-    </div>`:''}
     <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px">
       ${st('💼','Active Projects',PL.filter(p=>p.phase!=='Warranty Period').length,BL)}
       ${st('💰','Total Pipeline',fmtK(total),GR)}
@@ -699,7 +392,7 @@ function PROJECTS(){
 
 function DASHBOARD(){
   const p=A.project||(A.dbProjects||MOCK_PROJECTS)[0];
-  const TB=[{id:'overview',icon:'📊',l:'Overview'},{id:'reports',icon:'📝',l:'Daily Reports'},{id:'billing',icon:'💰',l:'Cash Flow'},{id:'procurement',icon:'🛒',l:'Procurement'},{id:'approvals',icon:'⚖️',l:'Approvals'},{id:'inventory',icon:'📦',l:'Live Inventory'},{id:'workforce',icon:'👷',l:'Workforce'},{id:'performance',icon:'💹',l:'Performance'},{id:'punchlist',icon:'✅',l:'Punch List'},{id:'boq',icon:'📑',l:'BOQ'},{id:'changeorders',icon:'🔄',l:'Change Orders'},{id:'gantt',icon:'📅',l:'Timeline'},{id:'safety',icon:'🦺',l:'Safety'},{id:'profit',icon:'💹',l:'Profitability'},{id:'ai',icon:'🤖',l:'AI Brain'},{id:'partners',icon:'🤝',l:'Partners'}];
+  const TB=[{id:'overview',icon:'📊',l:'Overview'},{id:'billing',icon:'💰',l:'Billing'},{id:'workforce',icon:'👷',l:'Workforce'},{id:'gantt',icon:'📅',l:'Timeline'},{id:'variations',icon:'🔄',l:'Variations'},{id:'profit',icon:'💹',l:'Profit'}];
   let C='';
 
   if(A.dashTab==='overview'){
@@ -903,30 +596,6 @@ function DASHBOARD(){
           ${bt('− Log Usage',"ss({showUsage:!A.showUsage,showDelivery:false})",'tinted',OR,true)}
         </div>
       </div>
-      
-      ${A.showDelivery?`<div class="card" style="padding:18px;margin:12px;background:var(--card2);border:1px solid ${GR}40">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">Material Inbound Log</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Material Name</div><input id="inv_m" placeholder="Cement (40kg)"></div>
-          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Quantity Received</div><input type="number" id="inv_q" placeholder="100"></div>
-        </div>
-        <div style="display:flex;gap:8px">
-          ${bt('Add Stock','doLogInventory("delivery")','filled',GR)}
-          ${bt('Cancel','ss({showDelivery:false})','ghost')}
-        </div>
-      </div>`:''}
-      
-      ${A.showUsage?`<div class="card" style="padding:18px;margin:12px;background:var(--card2);border:1px solid ${OR}40">
-        <div style="font-size:14px;font-weight:600;margin-bottom:12px">Site Usage / Withdrawal</div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
-          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Material Name</div><input id="inv_mu" placeholder="Cement (40kg)"></div>
-          <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Quantity Used</div><input type="number" id="inv_qu" placeholder="50"></div>
-        </div>
-        <div style="display:flex;gap:8px">
-          ${bt('Log Usage','doLogInventory("usage")','filled',OR)}
-          ${bt('Cancel','ss({showUsage:false})','ghost')}
-        </div>
-      </div>`:''}
       <div style="overflow-x:auto"><table style="width:100%;border-collapse:collapse">
         <thead><tr style="background:var(--card2)">${['Material','Delivered','Used','On Hand','Expected','Variance','Status'].map(h=>`<th style="padding:12px 14px;font-size:11px;font-weight:600;color:var(--text3);text-align:left;border-bottom:0.5px solid var(--sep)">${h}</th>`).join('')}</tr></thead>
         <tbody>${A.inventory.map(r=>{
@@ -983,7 +652,7 @@ function DASHBOARD(){
     const link = `https://constructai-antigravity.vercel.app/?ref=${A.aff.id}`;
     C=`<div style="max-width:900px;margin:0 auto">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-        <div><div style="font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em">Partner Program</div><div style="font-size:14px;color:var(--text3)">Earn 20% recurring commission for every referral.</div></div>
+        <div><div style="font-size:24px;font-weight:800;color:var(--text);letter-spacing:-.03em">Partner Program</div><div style="font-size:14px;color:var(--text3)">Earn 10% recurring commission for every referral.</div></div>
         <div style="background:${GR}15;color:${GR};padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600">Level: ${A.aff.tier}</div>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:24px">
@@ -1004,7 +673,7 @@ function DASHBOARD(){
           <div style="padding:16px 20px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600">Recent Conversions</div>
           ${[1,2,3].map(i=>`<div style="display:flex;justify-content:space-between;padding:14px 20px;border-bottom:0.5px solid var(--sep)">
             <div><div style="font-size:14px;font-weight:600;color:var(--text)">Contractor #${100+i}</div><div style="font-size:12px;color:var(--text3)">Pro Plan · Active</div></div>
-            <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${GR}">+₱998.00</div><div style="font-size:11px;color:var(--text4)">Mar ${20+i}, 2026</div></div>
+            <div style="text-align:right"><div style="font-size:14px;font-weight:700;color:${GR}">+₱249.00</div><div style="font-size:11px;color:var(--text4)">Mar ${20+i}, 2026</div></div>
           </div>`).join('')}
         </div>
         <div>
@@ -1104,17 +773,8 @@ function DASHBOARD(){
   else if(A.dashTab==='gantt'){
     C=`<div class="card" style="padding:20px"><div style="font-weight:700;margin-bottom:15px">Timeline</div>${[{n:'Foundation',p:100,c:GR},{n:'Structural',p:65,c:OR},{n:'Roofing',p:0,c:BL}].map(ph=>`<div style="margin-bottom:10px"><span>${ph.n}</span>${pb(ph.p,ph.c,6)}</div>`).join('')}</div>`;
   }
-  else if(A.dashTab==='punchlist'){
-    C=`<div style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center"><div style="font-size:20px;font-weight:700">Punch List / Defects Tracking</div>${bt('+ Log Defect','ss({showPunchForm:true})','filled',OR,true)}</div>
-    <div class="card"><table style="width:100%"><thead><tr style="background:var(--card2)">${['Area','Issue','Trade','Status'].map(h=>`<th style="padding:12px;text-align:left;font-size:11px">${h}</th>`).join('')}</tr></thead><tbody>${A.punches.map(p=>`<tr><td style="padding:12px;font-size:13px">${p.area}</td><td style="padding:12px;font-size:13px">${p.item}</td><td style="padding:12px">${bdg(p.trade,BL)}</td><td style="padding:12px">${bdg(p.status,sc(p.status))}</td></tr>`).join('')}</tbody></table></div>`;
-  }
-  else if(A.dashTab==='safety'){
-    C=`<div style="margin-bottom:24px"><div style="font-size:22px;font-weight:700">OSHA Safety & Incident Log</div><div style="font-size:13px;color:var(--text3)">R.A. 11058 Mandatory Compliance Checklist.</div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px"><div class="card" style="padding:20px"><div style="font-weight:700;margin-bottom:12px">Compliance Status</div>${[['PPE Gear (Full)','Pass'],['Scaffolding Tagging','Pass'],['First-Aid Kit Stock','Pass'],['CSHP Enrollment','Pending']].map(([i,s])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--sep)"><span>${i}</span>${bdg(s,sc(s))}</div>`).join('')}</div><div class="card" style="padding:20px"><div style="font-weight:700;margin-bottom:12px">BFP Status</div>${bdg('Clearance Applied (Mar 10)',OR)}<div style="margin-top:10px;font-size:12px;color:var(--text3)">Required for Occupancy Permit. Estimated release: Apr 2.</div></div></div>`;
-  }
   else if(A.dashTab==='profit'){
-    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${st('💰','Total Budget',fmtK(p.value),BL)}${st('💸','Actual Spent',fmtK(p.spent),OR)}${st('💹','Est. Margin',fmtK(p.value - p.spent),GR)}</div>
-    <div class="card" style="margin-top:20px;padding:20px"><div style="font-weight:700;margin-bottom:15px">Margin Protection History</div>${pb(p.margin,GR,10)}<div style="margin-top:10px;font-size:12px;color:var(--text3)">Current Margin: ${p.margin}% (Target: 15%). Change orders tracking +2.4%.</div></div>`;
+    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px">${st('💼','Contract',fmtK(p.value),BL)}${st('💸','Spent',fmtK(p.spent),OR)}${st('📊','CPI','1.08',GR)}</div>`;
   }
 
   return`<div>
@@ -1566,11 +1226,6 @@ function render(){
   else if(A.view==='saas')html+=MASTER();
   else if(A.view==='partners')html+=PARTNERS_PORTAL()+FOOTER();
   else if(A.view==='crm')html+=CRM()+FOOTER();
-  else if(A.view==='erp')html+=ERP_HUB();
-  else if(A.view==='finance')html+=FINANCE();
-  else if(A.view==='hr')html+=HR();
-  else if(A.view==='supply')html+=SUPPLY_CHAIN();
-  else if(A.view==='operations')html+=OPERATIONS();
   
   if(A.showSigModal){
     html+=`<div style="position:fixed;inset:0;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);z-index:999;display:flex;align-items:center;justify-content:center;padding:20px;animation:fadeUp .2s ease forwards">
@@ -1590,8 +1245,6 @@ function render(){
     setTimeout(initSigPad, 100);
   }
   
-  if(A.showCheckoutModal) html += CHECKOUT_MODAL();
-  html += CMDK();
   app.innerHTML=html;
   document.body.classList.add('loaded');
   const splash=document.getElementById('splash');
@@ -1627,13 +1280,13 @@ function FOOTER(){
 }
 
 function PARTNERS_PORTAL(){
-  const tier = A.aff.refs > 20 ? 'Elite Partner (20%)' : 'Partner (20%)';
+  const tier = A.aff.refs > 20 ? 'Gold (15%)' : 'Bronze (10%)';
   const link = `https://constructai-antigravity.vercel.app/?ref=${A.aff.id}`;
   return `<div style="max-width:800px;margin:0 auto;padding:60px 20px">
     <div style="text-align:center;margin-bottom:48px">
       <div style="font-size:14px;font-weight:700;color:${BL};text-transform:uppercase;letter-spacing:1px;margin-bottom:12px">Affiliate Program</div>
       <h1 style="font-size:48px;font-weight:800;letter-spacing:-.04em;margin-bottom:16px">Build with us. <br>Earn with us.</h1>
-      <p style="font-size:18px;color:var(--text2);line-height:1.6;max-width:540px;margin:0 auto">Earn <span style="color:${GR};font-weight:700">20% recurring commission</span> for every contractor you refer to ConstructAI. Weekly payouts via GCash.</p>
+      <p style="font-size:18px;color:var(--text2);line-height:1.6;max-width:540px;margin:0 auto">Earn <span style="color:${GR};font-weight:700">10% recurring commission</span> for every contractor you refer to ConstructAI. Weekly payouts via GCash.</p>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;margin-bottom:40px">
        ${[['📈','Referral Clicks',A.aff.clicks],['🤝','Succesful Referrals',A.aff.refs],['₱','Pending Commission','₱3,450']].map(([i,l,v])=>`<div class="card" style="padding:24px;text-align:center"><div style="font-size:24px;margin-bottom:8px">${i}</div><div style="font-size:24px;font-weight:800;color:var(--text);margin-bottom:4px">${v}</div><div style="font-size:13px;color:var(--text3)">${l}</div></div>`).join('')}
@@ -1651,7 +1304,7 @@ function PARTNERS_PORTAL(){
          <div>
             <div style="font-size:14px;font-weight:700;margin-bottom:12px">Commission Rules</div>
             <div style="font-size:13px;color:var(--text2);display:flex;flex-direction:column;gap:10px">
-               <div>✅ 20% Lifetime Recurring</div>
+               <div>✅ 10% Lifetime Recurring</div>
                <div>✅ 20-Day Cookie Window</div>
                <div>✅ Real-time Analytics</div>
                <div>✅ Min. Payout: ₱1,000</div>
@@ -1682,24 +1335,8 @@ function CRM(){
         <div style="font-size:26px;font-weight:700;letter-spacing:-.03em;color:var(--text)">Sales & Leads Engine</div>
         <div style="font-size:14px;color:var(--text3)">Track potential residential and commercial projects.</div>
       </div>
-      ${bt('Add New Lead','ss({showLeadForm:true})','filled',BL)}
+      ${bt('Add New Lead','','filled',BL)}
     </div>
-    
-    ${A.showLeadForm?`<div class="card" style="padding:24px;margin-bottom:24px;background:var(--card2);border:1px solid ${BL}40">
-      <div style="font-size:18px;font-weight:700;margin-bottom:16px">New Proj Inbound</div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Lead Name</div><input id="l_n" placeholder="Juan dela Cruz"></div>
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Location</div><input id="l_l" placeholder="Forbes Park, Makati"></div>
-      </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Est. Value</div><input type="number" id="l_v" placeholder="5000000"></div>
-        <div><div style="font-size:12px;color:var(--text3);margin-bottom:5px">Contact Number</div><input id="l_c" placeholder="0917-XXXX-XXX"></div>
-      </div>
-      <div style="display:flex;gap:10px;margin-top:20px">
-        ${bt('Save Lead','doAddLead()','filled',BL)}
-        ${bt('Cancel','ss({showLeadForm:false})','ghost')}
-      </div>
-    </div>`:''}
     
     <div style="display:flex;gap:8px;margin-bottom:24px;overflow-x:auto;padding-bottom:10px">
       ${['All',...stages].map(s=>`<button onclick="ss({crmStageFilter:'${s}'})" style="padding:7px 16px;border-radius:20px;border:none;background:${filter===s?BL+'20':'var(--card2)'};color:${filter===s?BL:'var(--text2)'};font-size:13px;font-weight:500;white-space:nowrap">${s} ${s==='All'?`(${A.leads.length})`:''}</button>`).join('')}
@@ -1731,599 +1368,6 @@ function CRM(){
   </div>`;
 }
 
-function ERP_HUB(){
-  const allP=A.dbProjects||MOCK_PROJECTS;
-  const totalRev=allP.reduce((s,p)=>s+p.value,0);
-  const totalSpent=allP.reduce((s,p)=>s+p.spent,0);
-  const totalRec=allP.reduce((s,p)=>s+p.received,0);
-  const totalGap=allP.reduce((s,p)=>s+p.cashGap,0);
-  const totalPayroll=A.payroll[0].total;
-  const totalAPend=A.purchaseOrders.filter(p=>p.status!=='Delivered').reduce((s,p)=>s+p.total,0);
-  const modules=[
-    {icon:'💰',title:'Finance & Accounting',desc:'P&L, General Ledger, Invoicing, COA',color:GR,view:'finance',kpi:fmtK(totalRev-totalSpent),kpiLabel:'Gross Profit'},
-    {icon:'👥',title:'HR & Payroll',desc:'Employees, Timekeeping, Leave, Payroll',color:BL,view:'hr',kpi:A.employees.filter(e=>e.status==='Active').length+' Active',kpiLabel:'Headcount'},
-    {icon:'🚚',title:'Supply Chain',desc:'Vendors, Purchase Orders, Logistics',color:OR,view:'supply',kpi:fmtK(totalAPend),kpiLabel:'Open PO Value'},
-    {icon:'⚙️',title:'Operations',desc:'Work Orders, Equipment Assets, Quality',color:PU,view:'operations',kpi:A.workOrders.filter(w=>w.status==='In Progress').length+' Active',kpiLabel:'Work Orders'},
-    {icon:'📦',title:'Inventory',desc:'Multi-project stock & reorder alerts',color:TE,view:'dashboard',kpi:A.inventory.filter(i=>i.delivered-i.used<=i.reorder&&i.reorder>0).length+' Alerts',kpiLabel:'Low Stock'},
-    {icon:'📊',title:'Projects',desc:'All active construction projects',color:IN,view:'projects',kpi:allP.length+' Projects',kpiLabel:'Portfolio'},
-  ];
-  return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px">
-      <div>
-        <div style="font-size:28px;font-weight:800;letter-spacing:-.04em;color:var(--text)">🏢 Enterprise Resource Planning</div>
-        <div style="font-size:14px;color:var(--text3);margin-top:4px">Unified command center — Finance · HR · Supply Chain · Operations · Inventory</div>
-      </div>
-      <div style="background:${GR}15;border:0.5px solid ${GR}40;border-radius:12px;padding:8px 16px;text-align:right">
-        <div style="font-size:11px;color:${GR};font-weight:600;text-transform:uppercase;letter-spacing:.05em">System Health</div>
-        <div style="font-size:20px;font-weight:700;color:${GR}">● All Systems Operational</div>
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px">
-      <div style="background:${BL};border-radius:14px;padding:20px;color:#fff">
-        <div style="font-size:11px;opacity:.7;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em">Total Contract Pipeline</div>
-        <div style="font-size:28px;font-weight:800;letter-spacing:-.03em">${fmtK(totalRev)}</div>
-        <div style="font-size:12px;opacity:.6;margin-top:6px">${allP.length} active projects</div>
-      </div>
-      ${st('💵','Total Collections',fmtK(totalRec),GR)}
-      ${st('⚠️','Cash Gap',fmtK(totalGap),RD)}
-      ${st('👷','Payroll (Monthly)','₱'+totalPayroll.toLocaleString(),PU)}
-      <div class="card" style="padding:16px;background:linear-gradient(135deg,#1a1a1a,#000);border:1px solid ${BL}40;display:flex;justify-content:space-between;align-items:center">
-        <div>
-          <div style="font-size:11px;color:${BL};font-weight:700;text-transform:uppercase">BIM 3D Progress</div>
-          <div style="font-size:14px;font-weight:600;color:#fff">${A.bimView?'ACTIVE VIEW':'ENTER 3D VIEW'}</div>
-        </div>
-        <button onclick="ss({bimView:!A.bimView})" style="background:${A.bimView?RD:BL};color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:11px;font-weight:700">${A.bimView?'EXIT':'LOAD MODEL'}</button>
-      </div>
-    </div>
-    ${A.bimView?`<div class="card" style="height:400px;margin-bottom:28px;background:#000;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden">
-      <div style="position:absolute;inset:0;background:url('https://images.unsplash.com/photo-1503387762-592be5a525b7?auto=format&fit=crop&q=80&w=1200') center;opacity:0.4;filter:grayscale(1) contrast(1.2)"></div>
-      <div style="z-index:1;text-align:center">
-        <div style="font-size:40px;margin-bottom:10px">🏙️</div>
-        <div style="font-size:18px;font-weight:700;color:#00FFA3">BIM Digital Twin Loading...</div>
-        <div style="font-size:12px;color:#aaa;margin-top:8px">Visualizing structural phase vs schedule. 82% match.</div>
-      </div>
-      <div style="position:absolute;bottom:20px;right:20px;display:flex;gap:10px">
-        ${bt('Top View','','tinted',null,true)} ${bt('Section X-X','','tinted',null,true)} ${bt('Flyover','','filled',BL,true)}
-      </div>
-    </div>`:''}
-    <div style="margin-bottom:20px"><div style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:14px">ERP Modules</div></div>
-    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px">
-      ${modules.map(m=>`<div class="card rh" onclick="go('${m.view}')" style="padding:24px;cursor:pointer;border-left:4px solid ${m.color}">
-        <div style="font-size:28px;margin-bottom:12px">${m.icon}</div>
-        <div style="font-size:17px;font-weight:700;color:var(--text);margin-bottom:4px">${m.title}</div>
-        <div style="font-size:12px;color:var(--text3);margin-bottom:16px">${m.desc}</div>
-        <div style="display:flex;justify-content:space-between;align-items:flex-end">
-          <div><div style="font-size:20px;font-weight:800;color:${m.color}">${m.kpi}</div><div style="font-size:11px;color:var(--text3)">${m.kpiLabel}</div></div>
-          <span style="font-size:20px;color:${m.color}">→</span>
-        </div>
-      </div>`).join('')}
-    </div>
-    <div style="display:grid;grid-template-columns:2fr 1fr;gap:16px">
-      <div class="card" style="padding:20px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">⚠️ Cross-Module Alerts</div>
-        ${[{t:'💰 FINANCE',m:'Invoice INV-2026-031 (₱850,000) is 7 days overdue. Follow up with Maria Santos.',c:RD},{t:'👷 HR',m:'Glenn Padilla (Plumber) is AWOL for 3 consecutive days. Initiate HR action.',c:OR},{t:'🚚 SUPPLY CHAIN',m:'PO-405 Rebar ₱81,600 is pending PM approval. Review and sign.',c:OR},{t:'⚙️ OPERATIONS',m:'QC Fail: Waterproofing test on Reyes Bldg roofing — 2 leaks. Requires rework.',c:RD}].map(a=>`<div style="display:flex;gap:10px;padding:10px 0;border-bottom:0.5px solid var(--sep)">
-          <span style="font-size:10px;font-weight:700;color:${a.c};background:${a.c}15;border-radius:6px;padding:2px 6px;flex-shrink:0;align-self:flex-start">${a.t}</span>
-          <span style="font-size:13px;color:var(--text2);line-height:1.4">${a.m}</span>
-        </div>`).join('')}
-      </div>
-      <div class="card" style="padding:20px">
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px">📈 Month-to-Date P&L</div>
-        ${[['Revenue',4250000,GR],['Labor Cost',1240000,RD],['Materials Cost',855000,RD],['Subcontractors',150000,RD],['Overhead',180000,OR]].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:0.5px solid var(--sep)">
-          <span style="font-size:13px;color:var(--text2)">${l}</span>
-          <span style="font-size:13px;font-weight:600;color:${c}">${c===GR?'+':'−'}${fmtK(v)}</span>
-        </div>`).join('')}
-        <div style="display:flex;justify-content:space-between;padding:12px 0;margin-top:4px">
-          <span style="font-size:14px;font-weight:700;color:var(--text)">Net Profit</span>
-          <span style="font-size:16px;font-weight:800;color:${GR}">${fmtK(4250000-1240000-855000-150000-180000)}</span>
-        </div>
-      </div>
-    </div>
-  </div>`;
-}
-
-function FINANCE(){
-  const tabs=[{id:'overview',l:'Overview'},{id:'gl',l:'General Ledger'},{id:'invoices',l:'Invoices / AR'},{id:'estimates',l:'AI Estimator'},{id:'intl',l:'Procurement'}];
-  let C='';
-  if(A.finTab==='overview'){
-    const rev=33750000,cogs=26840000,opex=2380000,np=rev-cogs-opex;
-    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px">
-      <div style="background:${GR};border-radius:14px;padding:20px;color:#fff"><div style="font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.05em;margin-bottom:4px">YTD Revenue</div><div style="font-size:28px;font-weight:800">${fmtK(rev)}</div></div>
-      ${st('💸','Cost of Works',fmtK(cogs),RD)}
-      ${st('📊','Gross Profit',fmtK(rev-cogs),GR)}
-      ${st('📈','Net Profit Margin',((np/rev)*100).toFixed(1)+'%',np>0?GR:RD)}
-    </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
-      <div class="card" style="padding:20px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:16px">📊 P&L Statement (YTD)</div>
-        ${[['Revenue',rev,GR],['Cost of Goods Sold',-cogs,RD],['Gross Profit',rev-cogs,GR],['Operating Expenses',-opex,OR],['Net Profit Before Tax',np,np>0?GR:RD]].map(([l,v,c])=>`<div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid var(--sep)">
-          <span style="font-size:13px;color:var(--text2);font-weight:${l.includes('Profit')?600:400}">${l}</span>
-          <span style="font-size:13px;font-weight:${l.includes('Profit')?700:500};color:${c}">${v<0?'−':''}${fmtK(Math.abs(v))}</span>
-        </div>`).join('')}
-      </div>
-      <div class="card" style="padding:20px">
-        <div style="font-size:14px;font-weight:700;margin-bottom:16px">💳 Accounts Summary</div>
-        <div style="margin-bottom:16px"><div style="font-size:11px;color:${GR};font-weight:600;margin-bottom:6px">ASSETS</div>
-          ${A.accounts.filter(a=>a.type==='Asset').map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--sep)"><span style="font-size:12px;color:var(--text2)">${a.name}</span><span style="font-size:13px;font-weight:600;color:${GR}">${fmtK(a.balance)}</span></div>`).join('')}
-        </div>
-        <div><div style="font-size:11px;color:${RD};font-weight:600;margin-bottom:6px">LIABILITIES</div>
-          ${A.accounts.filter(a=>a.type==='Liability').map(a=>`<div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--sep)"><span style="font-size:12px;color:var(--text2)">${a.name}</span><span style="font-size:13px;font-weight:600;color:${RD}">${fmtK(a.balance)}</span></div>`).join('')}
-        </div>
-      </div>
-    </div>`;
-  } else if(A.finTab==='gl'){
-    C=`<div class="card" style="overflow-x:auto">
-      <div style="padding:16px 20px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">General Ledger</span>${bt('+ Add Entry','alert("Journal entry form")','tinted',BL,true)}</div>
-      <table style="width:100%;border-collapse:collapse;min-width:700px">
-        <thead><tr style="background:var(--card2)">${['Date','Account','Type','Debit','Credit','Reference'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.gl.map(g=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${g.date}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--text)">${g.acc}</td>
-          <td style="padding:12px 16px">${bdg(g.type,g.type==='Revenue'?GR:g.type==='Expense'?RD:g.type==='Asset'?BL:OR)}</td>
-          <td style="padding:12px 16px;font-size:13px;color:${g.debit>0?RD:'var(--text3)'};font-weight:${g.debit>0?600:400}">${g.debit>0?fmt(g.debit):'—'}</td>
-          <td style="padding:12px 16px;font-size:13px;color:${g.credit>0?GR:'var(--text3)'};font-weight:${g.credit>0?600:400}">${g.credit>0?fmt(g.credit):'—'}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${g.ref}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  } else if(A.finTab==='invoices'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Accounts Receivable / Invoices</div>${bt('+ New Invoice','alert("Invoice form")','filled',GR,true)}</div>
-    <div class="card" style="overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="background:var(--card2)">${['Invoice #','Client','Project','Amount','Due Date','Issued','Status','Action'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.invoices.map(inv=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:12px;font-weight:600;color:${BL}">${inv.id}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600">${inv.client}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${inv.project}</td>
-          <td style="padding:12px 16px;font-size:14px;font-weight:700;color:var(--text)">${fmt(inv.amount)}</td>
-          <td style="padding:12px 16px;font-size:12px;color:${inv.status==='Overdue'?RD:'var(--text3)'};font-weight:${inv.status==='Overdue'?700:400}">${inv.due}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${inv.issued}</td>
-          <td style="padding:12px 16px">${bdg(inv.status,sc(inv.status))}</td>
-          <td style="padding:12px 16px">${bt('Send Reminder','alert("Reminder sent!")','tinted',BL,true)}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  } else if(A.finTab==='estimates'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">AI Estimator & Blueprint OCR</div>${bt('📤 Upload Plans','alert("Scanning...")','filled',BL,true)}</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-      ${A.estimates.map(e=>`<div class="card" style="padding:20px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-          <div><div style="font-size:11px;color:var(--text3)">${e.id}</div><div style="font-size:16px;font-weight:700">${e.name}</div></div>
-          ${bdg(e.status,e.status==='Ready'?GR:OR)}
-        </div>
-        ${pb(e.pct,e.status==='Ready'?GR:BL,8)}
-        <div style="display:flex;justify-content:space-between;margin-top:12px;align-items:flex-end">
-          <div><div style="font-size:11px;color:var(--text3)">Extracted BOQ Items</div><div style="font-size:18px;font-weight:800">${e.items} items</div></div>
-          <div><div style="font-size:11px;color:var(--text3);text-align:right">Total Estimate</div><div style="font-size:18px;font-weight:800;color:${GR}">${fmt(e.total)}</div></div>
-        </div>
-      </div>`).join('')}
-    </div>
-    <div class="card" style="padding:40px;text-align:center;border:2px dashed var(--sep);background:var(--card2)">
-      <div style="font-size:40px;margin-bottom:12px">📄</div>
-      <div style="font-size:16px;font-weight:700">Drop PDF Plans Here</div>
-      <div style="font-size:13px;color:var(--text3);margin-top:4px">ConstructAI Vision will automatically extract quantities.</div>
-    </div>`;
-  } else if(A.finTab==='intl'){
-    C=`<div class="card" style="padding:24px">
-      <div style="font-size:18px;font-weight:700;margin-bottom:20px">🌍 International Procurement & FX</div>
-      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px">
-        ${Object.entries(A.exRates).map(([k,v])=>`<div class="card2">
-          <div style="font-size:11px;color:var(--text3)">PHP / ${k}</div>
-          <div style="font-size:20px;font-weight:800">${v.toFixed(2)}</div>
-        </div>`).join('')}
-      </div>
-      <div style="font-size:14px;font-weight:700;margin-bottom:12px">Bulk Wire Transfer / LC Tracker</div>
-      <div style="background:var(--card2);border-radius:12px;padding:16px">
-        <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sep)">
-          <span style="font-size:13px">Imported Tiles (Guangzhou)</span>
-          <span style="font-size:13px;font-weight:700">USD 4,200 <span style="font-weight:400;color:var(--text3)"> (₱236,040)</span></span>
-        </div>
-        <div style="display:flex;justify-content:space-between;padding:10px 0">
-          <span style="font-size:13px">Status</span>
-          ${bdg('L/C Opened',GR)}
-        </div>
-      </div>
-    </div>`;
-  }
-  return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <div><div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text)">💰 Finance & Accounting</div><div style="font-size:13px;color:var(--text3)">General Ledger · P&L · AI Estimator · Multi-Currency</div></div>
-      ${bt('← ERP Hub',"go('erp')",'ghost',null,true)}
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--card2);border-radius:12px;padding:4px;width:fit-content">
-      ${tabs.map(t=>`<button onclick="ss({finTab:'${t.id}'})" style="padding:6px 14px;border-radius:8px;border:none;background:${A.finTab===t.id?BL:'transparent'};color:${A.finTab===t.id?'#fff':'var(--text3)'};font-size:12px;font-weight:500">${t.l}</button>`).join('')}
-    </div>
-    ${C}
-  </div>`;
-}
-
-function HR(){
-  const tabs=[{id:'employees',l:'Employees'},{id:'payroll',l:'Payroll'},{id:'leave',l:'Leave Management'},{id:'certs',l:'Certifications'}];
-  let C='';
-  if(A.hrTab==='employees'){
-    const active=A.employees.filter(e=>e.status==='Active').length;
-    const totalSalary=A.employees.filter(e=>e.status==='Active').reduce((s,e)=>s+e.salary,0);
-    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
-      ${st('👥','Total Headcount',A.employees.length+' employees',BL)}
-      ${st('✅','Active',active,GR)}
-      ${st('🚨','AWOL',A.employees.filter(e=>e.status==='AWOL').length,RD)}
-      ${st('💰','Monthly Salary Expense','₱'+totalSalary.toLocaleString(),PU)}
-    </div>
-    <div class="card" style="overflow-x:auto">
-      <div style="padding:14px 20px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">Employee Directory</span>${bt('+ Add Employee','alert("Employee form")','filled',BL,true)}</div>
-      <table style="width:100%;border-collapse:collapse;min-width:800px">
-        <thead><tr style="background:var(--card2)">${['ID','Name','Department','Position','Salary','Hired','Leave Balance','Status'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.employees.map(e=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:11px;font-family:monospace;color:var(--text3)">${e.id}</td>
-          <td style="padding:12px 16px"><div style="font-size:13px;font-weight:700;color:var(--text)">${e.name}</div></td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${e.dept}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${e.position}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:${BL}">₱${e.salary.toLocaleString()}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${e.hired}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text)">${e.leave-e.leaveUsed} days left</td>
-          <td style="padding:12px 16px">${bdg(e.status,e.status==='Active'?GR:e.status==='AWOL'?RD:OR)}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  } else if(A.hrTab==='payroll'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Payroll Processing</div>${bt('▶ Run Payroll','alert("Payroll run initiated!")','filled',GR,true)}</div>
-    <div class="card">
-      ${A.payroll.map(p=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:0.5px solid var(--sep)">
-        <div><div style="font-size:14px;font-weight:700;color:var(--text)">${p.period}</div><div style="font-size:12px;color:var(--text3)">${p.employees} employees · Released ${p.date}</div></div>
-        <div style="display:flex;align-items:center;gap:14px">
-          <div style="font-size:18px;font-weight:800;color:${BL}">₱${p.total.toLocaleString()}</div>
-          ${bdg(p.status,p.status==='Paid'?GR:p.status==='Processed'?BL:OR)}
-          ${bt('View Payslips','alert("Payslip list")','tinted',BL,true)}
-        </div>
-      </div>`).join('')}
-    </div>`;
-  } else if(A.hrTab==='leave'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Leave Requests</div>${bt('+ File Leave','alert("Leave form")','filled',BL,true)}</div>
-    <div class="card">
-      ${A.leaveRequests.map(l=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:16px 20px;border-bottom:0.5px solid var(--sep)">
-        <div><div style="font-size:14px;font-weight:600;color:var(--text)">${l.employee}</div><div style="font-size:12px;color:var(--text3)">${l.type} · ${l.from} to ${l.to} (${l.days} day${l.days>1?'s':''})</div></div>
-        <div style="display:flex;align-items:center;gap:10px">${bdg(l.status,sc(l.status))}${l.status==='Pending'?bt('Approve','alert("Approved!")','filled',GR,true)+''+bt('Reject','alert("Rejected!")','ghost',RD,true):''}</div>
-      </div>`).join('')}
-    </div>`;
-  } else if(A.hrTab==='certs'){
-    C=`<div class="card"><div style="padding:14px 20px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:700">Certification Vault</div>${A.employees.map(e=>`<div style="padding:14px 20px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-size:13px;font-weight:600;color:var(--text)">${e.name}</div><div style="font-size:11px;color:var(--text3)">${e.position}</div></div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;">${e.certifications.map(c=>`<span style="background:${BL}20;color:${BL};border-radius:10px;padding:2px 8px;font-size:11px;font-weight:500">${c}</span>`).join('')}</div>
-    </div>`).join('')}</div>`;
-  }
-  return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <div><div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text)">👥 Human Resources & Payroll</div><div style="font-size:13px;color:var(--text3)">Employee Directory · Timekeeping · Payroll · Leave · Certifications</div></div>
-      ${bt('← ERP Hub',"go('erp')",'ghost',null,true)}
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--card2);border-radius:12px;padding:4px;width:fit-content">
-      ${tabs.map(t=>`<button onclick="ss({hrTab:'${t.id}'})" style="padding:6px 14px;border-radius:8px;border:none;background:${A.hrTab===t.id?BL:'transparent'};color:${A.hrTab===t.id?'#fff':'var(--text3)'};font-size:12px;font-weight:500">${t.l}</button>`).join('')}
-    </div>
-    ${C}
-  </div>`;
-}
-
-function SUPPLY_CHAIN(){
-  const tabs=[{id:'vendors',l:'Vendors'},{id:'pos',l:'Purchase Orders'},{id:'logistics',l:'Logistics'},{id:'market',l:'Sub Marketplace'}];
-  let C='';
-  if(A.scTab==='vendors'){
-    const totalYTD=A.vendors.reduce((s,v)=>s+v.ytdSpend,0);
-    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-      ${st('🏭','Active Vendors',A.vendors.length,BL)}
-      ${st('⭐','Preferred Vendors',A.vendors.filter(v=>v.status==='Preferred').length,GR)}
-      ${st('💸','YTD Total Spend',fmtK(totalYTD),OR)}
-    </div>
-    <div class="card" style="overflow-x:auto">
-      <div style="padding:14px 20px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">Vendor Master List</span>${bt('+ Add Vendor','alert("Vendor form")','filled',BL,true)}</div>
-      <table style="width:100%;border-collapse:collapse;min-width:700px">
-        <thead><tr style="background:var(--card2)">${['Vendor','Category','Contact','Terms','Rating','YTD Spend','Status'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.vendors.map(v=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:13px;font-weight:700;color:var(--text)">${v.name}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${v.category}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${v.contact}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${v.terms}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:700;color:${v.rating>=4.5?GR:v.rating>=4?BL:OR}">★ ${v.rating}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--text)">${fmtK(v.ytdSpend)}</td>
-          <td style="padding:12px 16px">${bdg(v.status,v.status==='Preferred'?GR:BL)}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  } else if(A.scTab==='pos'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Purchase Orders</div>${bt('+ Create PO','alert("PO form")','filled',BL,true)}</div>
-    <div style="display:flex;flex-direction:column;gap:12px">${A.purchaseOrders.map(po=>`<div class="card" style="padding:0;overflow:hidden">
-      <div style="padding:14px 20px;background:var(--card2);border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
-        <div><span style="font-size:14px;font-weight:700;color:var(--text)">${po.id}</span> — <span style="font-size:13px;color:var(--text2)">${po.vendor}</span></div>
-        <div style="display:flex;gap:8px;align-items:center">${bdg(po.status,sc(po.status))}${po.status==='Pending Approval'?bt('Approve & Sign',"ss({showSigModal:true})",'filled',GR,true):''}</div>
-      </div>
-      <div style="padding:14px 20px;display:flex;gap:24px;flex-wrap:wrap">
-        <div><div style="font-size:11px;color:var(--text3)">Project</div><div style="font-size:13px;font-weight:600">${po.project}</div></div>
-        <div><div style="font-size:11px;color:var(--text3)">Date</div><div style="font-size:13px">${po.date}</div></div>
-        <div><div style="font-size:11px;color:var(--text3)">Total Amount</div><div style="font-size:18px;font-weight:800;color:${GR}">${fmt(po.total)}</div></div>
-        <div><div style="font-size:11px;color:var(--text3);margin-bottom:4px">Items</div>${po.items.map(i=>`<div style="font-size:12px;color:var(--text2)">${i.desc} — ${i.qty} ${i.unit} @ ${fmt(i.price)}</div>`).join('')}</div>
-      </div>
-    </div>`).join('')}</div>`;
-  } else if(A.scTab==='logistics'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Delivery & Logistics Tracker</div>${bt('+ Schedule Delivery','alert("Logistics form")','filled',OR,true)}</div>
-    <div class="card">${A.logistics.map(l=>`<div style="padding:18px 20px;border-bottom:0.5px solid var(--sep);display:flex;justify-content:space-between;align-items:center">
-      <div>
-        <div style="font-size:14px;font-weight:700;color:var(--text);margin-bottom:4px">${l.materials}</div>
-        <div style="font-size:12px;color:var(--text3)">📍 ${l.from} → ${l.to} · Vendor: ${l.vendor} · ETA: ${l.eta}</div>
-      </div>
-      <div style="display:flex;gap:10px;align-items:center">
-        <div style="text-align:right"><div style="font-size:15px;font-weight:700;color:var(--text)">${fmt(l.cost)}</div><div style="font-size:11px;color:var(--text3)">Trip Cost</div></div>
-        ${bdg(l.status,l.status==='In Transit'?OR:l.status==='Delivered'?GR:BL)}
-      </div>
-    </div>`).join('')}</div>`;
-  } else if(A.scTab==='market'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Subcontractor Bidding Marketplace</div>${bt('📢 Post New RFP','alert("RFP Form")','filled',BL,true)}</div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:16px">
-      ${A.subMarket.map(b=>`<div class="card" style="padding:20px">
-        <div style="display:flex;justify-content:space-between;margin-bottom:12px">
-          <div><div style="font-size:11px;color:var(--text3)">${b.trade}</div><div style="font-size:16px;font-weight:700">${b.vendor}</div></div>
-          ${bdg(b.compliance,GR)}
-        </div>
-        <div style="font-size:13px;color:var(--text2);margin-bottom:16px">Rating: <span style="font-weight:700;color:${OR}">★ ${b.rating}</span></div>
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><div style="font-size:11px;color:var(--text3)">Quoted Amount</div><div style="font-size:18px;font-weight:800;color:${BL}">${fmt(b.quoted)}</div></div>
-          ${bt('Review Bid','alert("Reviewing bid...")','tinted',BL,true)}
-        </div>
-      </div>`).join('')}
-    </div>`;
-  }
-  return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <div><div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text)">🚚 Supply Chain Management</div><div style="font-size:13px;color:var(--text3)">Vendor Directory · Purchase Orders · Subcontractor Marketplace</div></div>
-      ${bt('← ERP Hub',"go('erp')",'ghost',null,true)}
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--card2);border-radius:12px;padding:4px;width:fit-content">
-      ${tabs.map(t=>`<button onclick="ss({scTab:'${t.id}'})" style="padding:6px 14px;border-radius:8px;border:none;background:${A.scTab===t.id?BL:'transparent'};color:${A.scTab===t.id?'#fff':'var(--text3)'};font-size:12px;font-weight:500">${t.l}</button>`).join('')}
-    </div>
-    ${C}
-  </div>`;
-}
-
-function OPERATIONS(){
-  const tabs=[
-    {id:'workorders',l:'⚙️ Work Orders'},
-    {id:'equipment',l:'🔧 Equipment'},
-    {id:'fleet',l:'🛰️ Fleet GPS'},
-    {id:'iot',l:'📡 IoT Sensors'},
-    {id:'cameras',l:'📷 IP Cameras'},
-    {id:'qc',l:'✅ Quality Control'}
-  ];
-  let C='';
-  if(A.opsTab==='workorders'){
-    const priColor={Critical:RD,High:OR,Med:BL,Low:GR};
-    C=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px">
-      ${st('⚙️','Total WOs',A.workOrders.length,BL)}
-      ${st('🔄','In Progress',A.workOrders.filter(w=>w.status==='In Progress').length,GR)}
-      ${st('⏸️','On Hold',A.workOrders.filter(w=>w.status==='On Hold').length,OR)}
-      ${st('📋','Pending Assignment',A.workOrders.filter(w=>w.status==='Pending Assignment').length,RD)}
-    </div>
-    <div style="display:flex;flex-direction:column;gap:12px">${A.workOrders.map(wo=>`<div class="card" style="padding:20px;border-left:4px solid ${priColor[wo.priority]||BL}">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px">
-        <div>
-          <div style="display:flex;gap:8px;align-items:center;margin-bottom:4px">
-            <span style="font-size:11px;font-family:monospace;color:var(--text3)">${wo.id}</span>
-            ${bdg(wo.priority,priColor[wo.priority]||BL)}
-            ${bdg(wo.status,sc(wo.status))}
-          </div>
-          <div style="font-size:16px;font-weight:700;color:var(--text)">${wo.name}</div>
-          <div style="font-size:12px;color:var(--text3);margin-top:2px">${wo.type} · Assigned to: ${wo.assignedTo} · ${wo.start} – ${wo.end}</div>
-        </div>
-        ${bt('Update Status','alert("WO Status Update")','tinted',BL,true)}
-      </div>
-      ${wo.pct>0?`${pb(wo.pct,priColor[wo.priority]||BL,8)}<div style="font-size:11px;color:var(--text3);margin-top:4px">${wo.pct}% complete</div>`:''}
-    </div>`).join('')}</div>`;
-  } else if(A.opsTab==='equipment'){
-    const totalAssetValue=A.equipmentAssets.reduce((s,e)=>s+e.purchase,0);
-    C=`<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:20px">
-      ${st('🔧','Total Assets',A.equipmentAssets.length,BL)}
-      ${st('✅','In Use',A.equipmentAssets.filter(e=>e.status==='In Use').length,GR)}
-      ${st('💰','Total Asset Value',fmtK(totalAssetValue),PU)}
-    </div>
-    <div class="card" style="overflow-x:auto">
-      <div style="padding:14px 20px;border-bottom:0.5 solid var(--sep);display:flex;justify-content:space-between;align-items:center"><span style="font-size:14px;font-weight:700">Equipment & Asset Register</span>${bt('+ Register Asset','alert("Asset form")','filled',BL,true)}</div>
-      <table style="width:100%;border-collapse:collapse;min-width:700px">
-        <thead><tr style="background:var(--card2)">${['Asset ID','Name','Type','Purchase Value','Status','Project','Next Maintenance','Hours'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.equipmentAssets.map(e=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:11px;font-family:monospace;color:var(--text3)">${e.id}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:700;color:var(--text)">${e.name}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${e.type}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:${BL}">${fmtK(e.purchase)}</td>
-          <td style="padding:12px 16px">${bdg(e.status,e.status==='In Use'?GR:e.status==='Available'?BL:OR)}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${e.project||'—'}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${e.maintenance}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${e.hours.toLocaleString()}h</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  } else if(A.opsTab==='fleet'){
-    const now = new Date();
-    C=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div>
-        <div style="font-size:20px;font-weight:700">🛰️ Real-Time Fleet Telematics</div>
-        <div style="font-size:12px;color:var(--text3)">Live GPS · Fuel · Engine Health · Maintenance Alerts</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        ${bdg('● LIVE', GR)}
-        ${bt('Open Google Maps','window.open("https://maps.google.com","_blank")','tinted',BL,true)}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-      ${st('🚗','Total Vehicles',A.fleet.length,BL)}
-      ${st('🟢','Moving',A.fleet.filter(f=>f.status==='Moving').length,GR)}
-      ${st('🟡','Idling',A.fleet.filter(f=>f.status==='Idling').length,OR)}
-      ${st('⛽','Low Fuel',A.fleet.filter(f=>f.fuel<25).length,RD)}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
-      ${A.fleet.map(f=>{
-        const sc = f.status==='Moving'?GR:f.status==='Idling'?OR:BL;
-        const fuelColor = f.fuel<20?RD:f.fuel<40?OR:GR;
-        return `<div class="card" style="padding:20px;border-left:4px solid ${sc};position:relative;overflow:hidden">
-          <div style="position:absolute;top:0;right:0;width:80px;height:80px;background:${sc}08;border-radius:0 0 0 80px"></div>
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px">
-            <div>
-              <div style="font-size:10px;color:var(--text3);font-family:monospace;margin-bottom:2px">${f.id}</div>
-              <div style="font-size:15px;font-weight:700;color:var(--text)">${f.n}</div>
-              <div style="font-size:12px;color:var(--text3);margin-top:2px">📍 ${f.loc}</div>
-            </div>
-            ${bdg(f.status,sc)}
-          </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-            <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:4px">⛽ FUEL LEVEL</div>
-              ${pb(f.fuel,fuelColor,8)}
-              <div style="font-size:12px;font-weight:700;color:${fuelColor};margin-top:4px">${f.fuel}% ${f.fuel<20?'🚨 CRITICAL':f.fuel<40?'⚠️ Low':''}</div>
-            </div>
-            <div>
-              <div style="font-size:10px;color:var(--text3);margin-bottom:4px">🔧 ENGINE HEALTH</div>
-              ${pb(f.health, f.health>90?GR:OR, 8)}
-              <div style="font-size:12px;font-weight:700;color:${f.health>90?GR:OR};margin-top:4px">${f.health}%</div>
-            </div>
-          </div>
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <div style="font-size:11px;color:var(--text3)">Last Maint: <span style="color:var(--text2);font-weight:500">${f.lastMaint}</span></div>
-            ${bt('Track','alert("GPS tracking — connect to vehicle OBD device")','ghost',sc,true)}
-          </div>
-        </div>`;
-      }).join('')}
-    </div>`;
-  } else if(A.opsTab==='iot'){
-    C=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div>
-        <div style="font-size:20px;font-weight:700">📡 IoT Environmental Sensors</div>
-        <div style="font-size:12px;color:var(--text3)">Real-time site safety monitoring · Temp · Humidity · CO₂ · Wind</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        ${bdg('● LIVE', GR)}
-        ${bdg('${A.iotSensors.filter(s=>s.status=\'Alert\').length} Alerts', RD)}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px">
-      ${st('🌡️','Avg Temperature',A.iotSensors.reduce((s,x)=>s+x.temp,0)/A.iotSensors.length|0+'°C',OR)}
-      ${st('💧','Avg Humidity',Math.round(A.iotSensors.reduce((s,x)=>s+x.humidity,0)/A.iotSensors.length)+'%',BL)}
-      ${st('🌬️','CO₂ Max',Math.max(...A.iotSensors.map(s=>s.co2))+' ppm',A.iotSensors.some(s=>s.co2>1000)?RD:GR)}
-      ${st('⚠️','Active Alerts',A.iotSensors.filter(s=>s.status!=='Normal').length,RD)}
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
-      ${A.iotSensors.map(s=>{
-        const sc = s.status==='Alert'?RD:s.status==='Warning'?OR:GR;
-        return `<div class="card" style="padding:20px;border-left:4px solid ${sc}">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-            <div>
-              <div style="font-size:10px;color:var(--text3);font-family:monospace">${s.id}</div>
-              <div style="font-size:14px;font-weight:700">${s.name}</div>
-            </div>
-            <div style="text-align:right">
-              ${bdg(s.status,sc)}
-              <div style="font-size:10px;color:var(--text3);margin-top:4px">Last: ${s.last}</div>
-            </div>
-          </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">
-            <div style="background:var(--card2);border-radius:10px;padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:${s.temp>33?RD:OR}">${s.temp}°</div>
-              <div style="font-size:10px;color:var(--text3)">TEMP</div>
-            </div>
-            <div style="background:var(--card2);border-radius:10px;padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:${s.humidity>80?RD:BL}">${s.humidity}%</div>
-              <div style="font-size:10px;color:var(--text3)">HUMID</div>
-            </div>
-            <div style="background:var(--card2);border-radius:10px;padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:${s.co2>1000?RD:GR}">${s.co2}</div>
-              <div style="font-size:10px;color:var(--text3)">CO₂ ppm</div>
-            </div>
-            <div style="background:var(--card2);border-radius:10px;padding:10px;text-align:center">
-              <div style="font-size:18px;font-weight:800;color:${BL}">${s.wind}</div>
-              <div style="font-size:10px;color:var(--text3)">WIND kph</div>
-            </div>
-          </div>
-          ${s.status==='Alert'?`<div style="margin-top:10px;background:${RD}15;border-radius:8px;padding:8px 12px;font-size:12px;color:${RD};font-weight:600">🚨 CO₂ levels exceed safe threshold (1000 ppm). Increase ventilation immediately.</div>`:''}
-          ${s.status==='Warning'?`<div style="margin-top:10px;background:${OR}15;border-radius:8px;padding:8px 12px;font-size:12px;color:${OR};font-weight:600">⚠️ Humidity exceeding 85% — check for water ingress or condensation.</div>`:''}
-        </div>`;
-      }).join('')}
-    </div>`;
-  } else if(A.opsTab==='cameras'){
-    C=`
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
-      <div>
-        <div style="font-size:20px;font-weight:700">📷 IP Camera CCTV Grid</div>
-        <div style="font-size:12px;color:var(--text3)">Site surveillance · RTSP/WebRTC feed · PTZ control</div>
-      </div>
-      <div style="display:flex;gap:8px">
-        ${bdg('${A.cameras.filter(c=>c.status===\'Live\').length}/${A.cameras.length} Online',GR)}
-        ${bt('Record All','alert("Cloud recording — connect to NVR storage")','tinted',RD,true)}
-      </div>
-    </div>
-    <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:14px">
-      ${A.cameras.map(cam=>{
-        const online = cam.status==='Live';
-        return `<div class="card" style="padding:0;overflow:hidden;border:0.5px solid ${online?GR+'40':'var(--sep)'}">
-          <div style="background:#000;height:200px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden">
-            ${online?`
-              <div style="position:absolute;inset:0;background:linear-gradient(135deg,#0a0a0a,#1a1a2e);">
-                <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);opacity:.08;font-size:80px">📷</div>
-                <div style="position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,255,100,.03) 2px,rgba(0,255,100,.03) 4px)"></div>
-                <div style="position:absolute;top:12px;left:12px;color:${GR};font-size:11px;font-weight:700;display:flex;align-items:center;gap:6px">
-                  <div style="width:6px;height:6px;border-radius:50%;background:${GR};animation:pulse 1.5s infinite"></div>LIVE
-                </div>
-                <div style="position:absolute;bottom:12px;left:12px;right:12px;font-size:11px;color:rgba(255,255,255,0.5);font-family:monospace">${cam.feed}</div>
-              </div>`:`
-              <div style="text-align:center;color:rgba(255,255,255,.3)">
-                <div style="font-size:32px;margin-bottom:8px">🔴</div>
-                <div style="font-size:12px">OFFLINE</div>
-              </div>`}
-          </div>
-          <div style="padding:14px;display:flex;justify-content:space-between;align-items:center">
-            <div>
-              <div style="font-size:10px;color:var(--text3);font-family:monospace">${cam.id} · ${cam.angle}</div>
-              <div style="font-size:14px;font-weight:700">${cam.name}</div>
-            </div>
-            <div style="display:flex;gap:6px">
-              ${bt('⟲ PTZ','alert("PTZ control — connect to IP camera firmware API")','ghost',BL,true)}
-              ${bt(online?'Fullscreen':'Reconnect',online?'alert("Fullscreen mode — embed WebRTC player")':'alert("Attempting reconnect...")','tinted',online?GR:RD,true)}
-            </div>
-          </div>
-        </div>`;
-      }).join('')}
-    </div>
-    <div style="margin-top:16px;background:${BL}0a;border:0.5px solid ${BL}30;border-radius:13px;padding:16px">
-      <div style="font-size:13px;font-weight:600;color:${BL};margin-bottom:8px">🔌 Integration Guide</div>
-      <div style="font-size:12px;color:var(--text2);line-height:1.7">
-        Connect your IP cameras via <strong>RTSP streams</strong> or <strong>WebRTC</strong>. Point your camera firmware to stream to the URLs above. For cloud NVR, use <strong>Reolink / Dahua API</strong>. For AI motion detection, enable the <strong>ONVIF webhook</strong> in your camera settings.
-      </div>
-    </div>`;
-  } else if(A.opsTab==='qc'){
-    C=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px"><div style="font-size:20px;font-weight:700">Quality Control Log</div>${bt('+ New QC Test','alert("QC test form")','filled',PU,true)}</div>
-    ${st('✅','Tests Passed',A.qualityChecks.filter(q=>q.status==='Pass').length,GR)}
-    <div class="card" style="margin-top:16px;overflow-x:auto">
-      <table style="width:100%;border-collapse:collapse;min-width:700px">
-        <thead><tr style="background:var(--card2)">${['QC ID','Area','Test','Result','Standard','Inspector','Date','Status'].map(h=>`<th style="padding:10px 16px;text-align:left;font-size:11px;color:var(--text3)">${h}</th>`).join('')}</tr></thead>
-        <tbody>${A.qualityChecks.map(q=>`<tr class="rh" style="border-bottom:0.5px solid var(--sep)">
-          <td style="padding:12px 16px;font-size:11px;font-family:monospace;color:var(--text3)">${q.id}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${q.area}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:600;color:var(--text)">${q.test}</td>
-          <td style="padding:12px 16px;font-size:13px;font-weight:700;color:${q.status==='Pass'?GR:RD}">${q.result}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${q.standard}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text2)">${q.inspector}</td>
-          <td style="padding:12px 16px;font-size:12px;color:var(--text3)">${q.date}</td>
-          <td style="padding:12px 16px">${bdg(q.status,q.status==='Pass'?GR:RD)}</td>
-        </tr>`).join('')}</tbody>
-      </table>
-    </div>`;
-  }
-  return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
-      <div><div style="font-size:26px;font-weight:800;letter-spacing:-.03em;color:var(--text)">⚙️ Operations Management</div><div style="font-size:13px;color:var(--text3)">Work Orders · Equipment Assets · Fleet Telematics · Quality Control</div></div>
-      ${bt('← ERP Hub',"go('erp')",'ghost',null,true)}
-    </div>
-    <div style="display:flex;gap:4px;margin-bottom:20px;background:var(--card2);border-radius:12px;padding:4px;width:fit-content">
-      ${tabs.map(t=>`<button onclick="ss({opsTab:'${t.id}'})" style="padding:6px 14px;border-radius:8px;border:none;background:${A.opsTab===t.id?BL:'transparent'};color:${A.opsTab===t.id?'#fff':'var(--text3)'};font-size:12px;font-weight:500">${t.l}</button>`).join('')}
-    </div>
-    ${C}
-  </div>`;
-}
 function ss(u){Object.assign(A,u);render();}
 function go(v){A.view=v;if(v==='dashboard'&&!A.project)A.project=(A.dbProjects||MOCK_PROJECTS)[0];render();}
 function goDashDemo(){A.user={name:'Engr. Dela Cruz'};A.project=MOCK_PROJECTS[0];A.view='dashboard';A.dashTab='overview';render();}
@@ -2353,8 +1397,7 @@ async function doSignUp(){
   if(err){err.textContent='';err.style.display='none';}
   if(!e||!p){if(err){err.textContent='Please enter email and password.';err.style.display='block';}return;}
   if(btn){btn.textContent='Creating account…';btn.disabled=true;}
-  const manualRef=document.getElementById('arc')?.value?.trim();
-  const refCode=localStorage.getItem('ca_ref') || manualRef;
+  const refCode=localStorage.getItem('ca_ref');
   const{data,error}=await SB.auth.signUp({
     email:e,
     password:p,
@@ -2393,240 +1436,16 @@ async function selectProject(id){
 }
 
 async function loadUserProjects(){
-  const {data, error} = await SB.from('projects').select('*').order('created_at', {ascending:false});
-  if (!error && data) {
-    A.dbProjects = data.map(p => ({
-      id: p.id, name: p.name, client: p.client_name, location: p.location,
-      value: p.contract_amount || 0, spent: p.spent || 0, billed: p.billed || 0, received: p.received || 0,
-      pct: p.progress || 0, phase: p.phase || 'Pre-Construction',
-      cashGap: p.cash_gap || 0, openPunch: p.open_punch || 0,
-      margin: p.margin || 0, daysLeft: p.days_left || 0, health: p.health || 'good',
-      user_id: p.user_id
+  const{data,error}=await SB.from('projects').select('*').order('created_at',{ascending:false});
+  if(!error&&data?.length){
+    A.dbProjects=data.map(p=>({
+      id:p.id,name:p.name,client:p.client_name,location:p.location,
+      value:p.contract_amount||0,spent:p.spent||0,billed:p.billed||0,received:p.received||0,
+      pct:p.progress||0,phase:p.phase||'Pre-Construction',cash_gap:p.cash_gap||0,
+      cashGap:p.cash_gap||0,openPunch:p.open_punch||0,
+      margin:p.margin||0,daysLeft:p.days_left||0,health:p.health||'good'
     }));
   }
-}
-
-async function doAddProject(){
-  const n = document.getElementById('p_n').value;
-  const c = document.getElementById('p_c').value;
-  const l = document.getElementById('p_l').value;
-  const v = document.getElementById('p_v').value;
-  
-  if(!n||!c||!v) return alert('Please fill in Name, Client, and Value.');
-  
-  const project = {
-    name: n,
-    client_name: c,
-    location: l,
-    contract_amount: Number(v),
-    progress: 0,
-    phase: 'Pre-Construction',
-    health: 'good',
-    user_id: A.user.id
-  };
-  
-  const {data, error} = await SB.from('projects').insert([project]).select();
-  if(error) return alert('Error saving project: ' + error.message);
-  
-  await loadUserProjects(); // Reload list
-  ss({showProjectForm:false});
-}
-
-async function loadLeads(){
-  const {data, error} = await SB.from('leads').select('*').order('created_at', {ascending:false});
-  if (!error && data) {
-    A.leads = data.length > 0 ? data : A.leads; // Fallback to mocks if empty for demo
-  }
-}
-
-async function doAddLead(){
-  const n = document.getElementById('l_n').value;
-  const l = document.getElementById('l_l').value;
-  const v = document.getElementById('l_v').value;
-  const c = document.getElementById('l_c').value;
-  
-  if(!n||!l||!v) return alert('Please fill in Name, Location, and Value.');
-  
-  const lead = {
-    name: n,
-    location: l,
-    value: Number(v),
-    contact: c,
-    stage: 'Inquiry',
-    source: 'Manual Entry',
-    health: 'hot',
-    user_id: A.user.id
-  };
-  
-  const {data, error} = await SB.from('leads').insert([lead]).select();
-  if(error) return alert('Error saving lead: ' + error.message);
-  
-  A.leads = [data[0], ...A.leads];
-  ss({showLeadForm:false});
-}
-
-async function doLogInventory(type){
-  const pid = A.project?.id;
-  if(!pid) return alert('No project selected');
-  
-  const m = document.getElementById(type==='delivery'?'inv_m':'inv_mu').value;
-  const q = Number(document.getElementById(type==='delivery'?'inv_q':'inv_qu').value);
-  
-  if(!m||!q) return alert('Please enter material name and quantity.');
-  
-  const existing = A.inventory.find(i=>i.mat.toLowerCase()===m.toLowerCase());
-  
-  const invUpdate = existing ? {
-    id: existing.id,
-    delivered: existing.delivered + (type==='delivery'?q:0),
-    used: existing.used + (type==='usage'?q:0),
-    expected: existing.expected,
-    project_id: pid,
-    user_id: A.user.id
-  } : {
-    project_id: pid,
-    mat: m,
-    delivered: type==='delivery'?q:0,
-    used: type==='usage'?q:0,
-    expected: type==='delivery'?q:0,
-    user_id: A.user.id
-  };
-  
-  const {data, error} = await SB.from('inventory').upsert([invUpdate]).select();
-  if(error) return alert('Error updating inventory: ' + error.message);
-  
-  await loadProjectData(pid);
-  ss({showDelivery:false, showUsage:false});
-}
-
-// ── Phase 2: Subscriptions & Payment Gateway ────────────────────────────────
-
-// PayMongo payment links (production) – replace with actual link IDs from paymongo.com
-const PAYMONGO_LINKS = {
-  'Starter-monthly':  'https://buy.stripe.com/test_placeholder_starter_mo',
-  'Starter-annual':   'https://buy.stripe.com/test_placeholder_starter_yr',
-  'Pro-monthly':      'https://buy.stripe.com/test_placeholder_pro_mo',
-  'Pro-annual':       'https://buy.stripe.com/test_placeholder_pro_yr',
-  'Enterprise-monthly': 'https://buy.stripe.com/test_placeholder_ent_mo',
-  'Enterprise-annual':  'https://buy.stripe.com/test_placeholder_ent_yr',
-};
-
-async function checkout(planName, amount, stripeId){
-  // Log the intent in Supabase for analytics
-  if(A.user?.id){
-    await SB.from('subscription_events').insert([{
-      user_id: A.user.id,
-      plan: planName,
-      amount: amount,
-      event_type: 'checkout_initiated',
-      billing_cycle: A.billing,
-      created_at: new Date().toISOString()
-    }]).select();
-  }
-  
-  // Build checkout URL with referral tracking
-  const ref = localStorage.getItem('ca_ref') || '';
-  const key = `${planName}-${A.billing}`;
-  const baseUrl = PAYMONGO_LINKS[key] || stripeId;
-  
-  // If it's still a placeholder, show a notice modal instead of failing silently
-  if(!baseUrl || baseUrl === '#' || baseUrl.includes('placeholder')){
-    A.checkoutPlan = planName;
-    A.checkoutAmount = amount;
-    ss({showCheckoutModal: true});
-    return;
-  }
-  
-  // Navigate to the payment link
-  const url = ref ? `${baseUrl}?client_reference_id=${A.user?.id||'guest'}&metadata[ref]=${ref}` : baseUrl;
-  window.open(url, '_blank');
-}
-
-// Show subscription checkout modal when payment link is not yet configured
-// (This can be removed once live Stripe/PayMongo links are set above)
-const CHECKOUT_MODAL = () => A.showCheckoutModal ? `
-  <div style="position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:1000;display:flex;align-items:center;justify-content:center;backdrop-filter:blur(4px)" onclick="if(event.target===this)ss({showCheckoutModal:false})">
-    <div style="background:var(--card);border-radius:20px;padding:32px;max-width:420px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,.3)">
-      <div style="font-size:22px;font-weight:800;margin-bottom:8px">Subscribe to ${A.checkoutPlan}</div>
-      <div style="font-size:15px;color:var(--text3);margin-bottom:24px">Pay ₱${(A.checkoutAmount||0).toLocaleString()}/mo via your preferred method:</div>
-      <div style="display:flex;flex-direction:column;gap:12px">
-        <button onclick="window.open('https://www.gcash.com','_blank');ss({showCheckoutModal:false})" style="background:#0163FF;color:#fff;border:none;border-radius:13px;padding:16px;font-weight:700;font-size:15px;cursor:pointer">Pay with GCash</button>
-        <button onclick="window.open('https://www.maya.ph','_blank');ss({showCheckoutModal:false})" style="background:#000;color:#fff;border:none;border-radius:13px;padding:16px;font-weight:700;font-size:15px;cursor:pointer">Pay with Maya <span style="color:#00FFA3">M</span></button>
-        <button onclick="window.open('https://www.paymongo.com','_blank');ss({showCheckoutModal:false})" style="background:var(--card2);border:0.5px solid var(--sep);border-radius:13px;padding:16px;font-size:14px;color:var(--text2);cursor:pointer">💳 Credit / Debit Card via PayMongo</button>
-      </div>
-      <div style="font-size:11px;color:var(--text4);text-align:center;margin-top:16px">Secured by PayMongo · ConstructAI PGP ver 2.0</div>
-    </div>
-  </div>` : '';
-
-// ── Phase 2: Finance Data Layer ─────────────────────────────────────────────
-
-async function loadFinanceData(){
-  if(!A.user?.id) return;
-  const [glRes, invRes] = await Promise.all([
-    SB.from('gl_entries').select('*').order('created_at', {ascending:false}).limit(50),
-    SB.from('invoices').select('*').order('created_at', {ascending:false}).limit(50)
-  ]);
-  if(glRes.data?.length) A.gl = glRes.data.map(g=>({
-    id: g.id, acc: g.account_code||g.acc, debit: g.debit||0, credit: g.credit||0,
-    date: g.entry_date||g.date, ref: g.reference||g.ref, type: g.type
-  }));
-  if(invRes.data?.length) A.invoices = invRes.data.map(i=>({
-    id: i.id, client: i.client_name||i.client, project: i.project_name||i.project,
-    amount: i.amount, due: i.due_date||i.due, status: i.status, issued: i.issued_date||i.issued
-  }));
-}
-
-async function logGLEntry(acc, debit, credit, ref, type){
-  if(!A.user?.id) return;
-  const entry = {
-    user_id: A.user.id,
-    project_id: A.project?.id || null,
-    account_code: acc,
-    debit: debit||0,
-    credit: credit||0,
-    reference: ref,
-    type: type,
-    entry_date: new Date().toISOString().split('T')[0]
-  };
-  const {data, error} = await SB.from('gl_entries').insert([entry]).select();
-  if(!error && data) {
-    A.gl = [data[0], ...A.gl];
-    render();
-  }
-}
-
-async function updateInvoiceStatus(invoiceId, newStatus){
-  const {error} = await SB.from('invoices').update({status: newStatus}).eq('id', invoiceId);
-  if(error) return alert('Error updating invoice: ' + error.message);
-  const inv = A.invoices.find(i=>i.id===invoiceId);
-  if(inv) { inv.status = newStatus; render(); }
-  // Auto-log cash receipt in GL when invoice received
-  if(newStatus === 'Received'){
-    const amt = A.invoices.find(i=>i.id===invoiceId)?.amount || 0;
-    await logGLEntry('1000 - Cash & Cash Equivalents', amt, 0, `Payment for Invoice ${invoiceId}`, 'Asset');
-    await logGLEntry('1100 - Accounts Receivable', 0, amt, `Cleared Invoice ${invoiceId}`, 'Asset');
-  }
-}
-
-async function createInvoice(clientName, project, amount, dueDate){
-  if(!A.user?.id) return;
-  const invId = 'INV-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
-  const invoice = {
-    user_id: A.user.id,
-    client_name: clientName,
-    project_name: project,
-    amount: Number(amount),
-    due_date: dueDate,
-    issued_date: new Date().toISOString().split('T')[0],
-    status: 'Draft'
-  };
-  const {data, error} = await SB.from('invoices').insert([invoice]).select();
-  if(error) return alert('Error creating invoice: ' + error.message);
-  // Auto-log revenue + AR in GL
-  await logGLEntry('4000 - Project Revenue', 0, Number(amount), `Invoice ${invId} — ${project}`, 'Revenue');
-  await logGLEntry('1100 - Accounts Receivable', Number(amount), 0, `Invoice ${invId} — ${clientName}`, 'Asset');
-  A.invoices = [{...invoice, id:data[0].id, client:clientName, project, due:dueDate, issued:invoice.issued_date}, ...A.invoices];
-  render();
 }
 
 async function loadProjectData(projectId){
@@ -2640,7 +1459,7 @@ async function loadProjectData(projectId){
   if(punches.data?.length) A.punches=punches.data;
   if(inv.data?.length) A.inventory=inv.data;
   if(bills.data?.length) A.billings=bills.data.map(b=>({...b,ms:b.milestone||b.ms,due:b.due_date||b.due}));
-  if(cos.data?.length) A.changeOrders=cos.data.map(c=>({...c,desc:c.description,by:c.requested_by}));
+  if(cos.data?.length) A.coItems=cos.data.map(c=>({...c,desc:c.description,by:c.requested_by}));
   if(msgs.data?.length) A.messages=msgs.data.map(m=>({from:m.sender,text:m.text,time:new Date(m.created_at).toLocaleString('en-PH',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'})}));
 }
 
@@ -2656,7 +1475,7 @@ async function initApp(){
   SB.auth.onAuthStateChange(async(ev,s)=>{
     if(s){
       A.user={name:s.user.user_metadata?.full_name||s.user.email.split('@')[0],email:s.user.email,id:s.user.id};
-      await Promise.all([loadUserProjects(), loadLeads(), loadFinanceData()]);
+      await loadUserProjects();
       if(A.view==='auth') A.view='projects';
     }else{ A.user=null; }
     render();
@@ -2671,8 +1490,38 @@ async function initApp(){
   render();
 }
 
-
-// Old checkout() stub replaced by Phase 2 implementation above.
+async function checkout(plan, price, link){
+  const btn = event?.target;
+  const originalText = btn?.textContent;
+  if(btn){ 
+    btn.innerHTML='<span style="display:inline-block;animation:pulse 1s infinite">Connecting Stripe...</span>'; 
+    btn.disabled=true; 
+  }
+  
+  // Wait to simulate a premium loading experience
+  setTimeout(()=>{
+    if(link && link !== '#' && link !== 'undefined'){
+      window.location.href = link;
+    } else {
+      // Sleek fallback notice for demo mode
+      const isMobile = window.innerWidth < 600;
+      const notice = document.createElement('div');
+      notice.className = 'fade';
+      notice.style = `position:fixed;bottom:20px;right:20px;background:#000;color:#fff;padding:16px 20px;border-radius:14px;z-index:9999;font-size:13px;box-shadow:0 10px 30px rgba(0,0,0,0.3);width:${isMobile?'calc(100% - 40px)':'340px'}`;
+      notice.innerHTML = `
+        <div style="font-weight:700;margin-bottom:4px;color:${BL}">Demo Mode Active</div>
+        <div style="opacity:0.8;line-height:1.45">Redirecting to project dashboard. Replace '#' with your <strong>Stripe Payment Links</strong> in the code to enable live payments.</div>
+      `;
+      document.body.appendChild(notice);
+      
+      setTimeout(() => {
+        if(btn){ btn.textContent = originalText; btn.disabled = false; }
+        goDashDemo();
+        setTimeout(()=>notice.remove(), 4000);
+      }, 1500);
+    }
+  }, 800);
+}
 
 async function genericPayLink(ref,amount,desc,btnTitle){
   const btn=event?.target;
@@ -2761,40 +1610,15 @@ function saveReport(){
   A.showReportForm=false;
   render();
 }
-async function scanWorker(){
+function scanWorker(){
   const out = A.workers.find(w=>w.s==='Out');
-  if(!out){ alert('No more workers to scan in demo.'); return; }
-
-  const now = new Date();
-  const timeStr = now.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
-
-  // Update UI state immediately for instant feedback
-  out.s='In'; out.t=timeStr;
-  A.scanningQR=false;
-  render();
-
-  // Persist to Supabase attendance table
-  if(A.user?.id){
-    const {error} = await SB.from('attendance').insert([{
-      user_id: A.user.id,
-      project_id: A.project?.id || null,
-      worker_id: out.id,
-      worker_name: out.n,
-      clock_in: now.toISOString(),
-      scan_method: 'QR',
-      status: 'Present'
-    }]);
-    if(error) console.warn('Attendance log failed:', error.message);
-    else {
-      // Show success toast
-      const toast = document.createElement('div');
-      toast.style = `position:fixed;bottom:24px;right:24px;background:${GR};color:#fff;padding:14px 20px;border-radius:14px;z-index:9999;font-size:14px;font-weight:600;box-shadow:0 10px 30px rgba(0,0,0,.2);animation:fadeUp .3s ease`;
-      toast.innerHTML = `✅ ${out.n} clocked in & logged`;
-      document.body.appendChild(toast);
-      setTimeout(()=>toast.remove(), 3500);
-    }
+  if(out){
+    out.s='In'; out.t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'});
+    A.scanningQR=false;
+    render();
+    setTimeout(()=>alert(`Success! [${out.id}] ${out.n} clocked in.`), 50);
   } else {
-    setTimeout(()=>alert(`✅ [${out.id}] ${out.n} clocked in at ${timeStr}`), 50);
+    alert('No more workers to scan in demo.');
   }
 }
 
@@ -2869,6 +1693,4 @@ function clearSig(){const c=document.getElementById('sig-canvas');if(c&&sCtx)sCt
 function saveSig(){ss({showSigModal:false,sigSaved:true});setTimeout(()=>alert('Document digitally signed sustainably! Agreement is now legally binding.'),50);}
 
 initApp();
-</script>
-</body>
-</html>
+
