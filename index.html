@@ -263,6 +263,12 @@ let A={
     {id:2,name:'JP Plumbing',trade:'Plumbing/Sanitary',score:3.2,projects:5,reliability:'Low',last:'Mar 2026',badge:'Provisional'},
     {id:3,name:'Solaris Electrical',trade:'Electrical',score:5.0,projects:28,reliability:'High',last:'Jan 2026',badge:'Top Rated'},
   ],
+  aiAnalysis: {
+    delayRisk: 'High',
+    predictedDelay: 12,
+    cause: 'Precipitation + Crew Turnover',
+    recommendation: 'Draft EOT Claim & Increase Masonry Crew by 2.'
+  },
 };
 
 const hc=h=>h==='good'?GR:h==='watch'?OR:RD;
@@ -487,6 +493,15 @@ function DASHBOARD(){
       ${st('✅','Open Punches',A.punches.filter(x=>x.status==='Open').length,OR)}
       ${st('💹','Net Margin',p.margin+'%',p.margin>10?GR:p.margin>7?OR:RD)}
     </div>
+    <div style="background:${A.aiAnalysis.delayRisk==='High'?RD:OR}12;border:0.5px solid ${A.aiAnalysis.delayRisk==='High'?RD:OR}40;border-radius:14px;padding:20px;margin-bottom:20px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+        <div style="font-size:14px;font-weight:700;color:${A.aiAnalysis.delayRisk==='High'?RD:OR};display:flex;align-items:center;gap:8px">🧠 AI Early Warning System (EWS) ${bdg('Prediction',PU)}</div>
+        ${bt('View Prediction Details','','tinted',A.aiAnalysis.delayRisk==='High'?RD:OR,true)}
+      </div>
+      <div style="font-size:20px;font-weight:810;color:var(--text);letter-spacing:-.02em;margin-bottom:6px">High Risk: Predicted ${A.aiAnalysis.predictedDelay}-Day Delay</div>
+      <div style="font-size:13px;color:var(--text2);line-height:1.45">ConstructAI has correlated current <b>Weather Outlook (LPA)</b> with your <b>Subcontractor Reliability Score</b>. Predicted turnover for <i>${p.name}</i> has shifted to mid-July.</div>
+      <div style="margin-top:14px;background:rgba(255,255,255,.05);padding:10px;border-radius:10px;font-size:12px;color:var(--text3)"><b>AI Recommendation:</b> ${A.aiAnalysis.recommendation}</div>
+    </div>
     <div class="card" style="margin-bottom:16px">
       <div style="padding:13px 18px;border-bottom:0.5px solid var(--sep);font-size:14px;font-weight:600;color:var(--text)">Active alerts</div>
       ${[{c:RD,i:'💰',m:'Progress billing PR-02 (₱850,000) 3 days overdue. Send client reminder.',t:'cashflow'},{c:OR,i:'👷',m:'Glenn Padilla (Plumber) AWOL — 3 consecutive days. Call and replace if no response.',t:'workforce'},{c:OR,i:'📦',m:`${A.inventory.filter(x=>x.delivered-x.used<=x.reorder&&x.reorder>0).length} materials at or below reorder level. Check live inventory.`,t:'inventory'},{c:OR,i:'🦺',m:'Fire Safety Clearance (BFP) not applied. Required before occupancy permit.',t:'safety'}].map(a=>`<div style="display:flex;align-items:center;gap:12px;padding:12px 18px;background:${a.c}08;border-bottom:0.5px solid var(--sep)">
@@ -525,7 +540,7 @@ function DASHBOARD(){
               <td style="padding:12px 20px;font-size:13px;font-weight:700;color:var(--text)">${fmt(b.p*r.qty)}</td>
               <td style="padding:12px 20px;font-size:13px;color:var(--text3)">${b.d}</td>
               <td style="padding:12px 20px">${bdg(b.win?'Awarded':'Quoted',b.win?GR:BL)}</td>
-              <td style="padding:12px 20px">${b.win?bt('PO Issued','','ghost',null,true):bt('Award Bid',`alert('Bid Awarded to ${b.v}!')`,'filled',GR,true)}</td>
+              <td style="padding:12px 20px">${b.win?bt('Order Material Now ↓','alert(\'Order requisition sent to Vendor API!\')','filled',GR,true):bt('Award Bid',`alert('Bid Awarded to ${b.v}!')`,'filled',GR,true)}</td>
             </tr>`).join('')}</tbody>
           </table>
         </div>
@@ -1229,19 +1244,43 @@ function CLIENT(){
         <div><div style="font-size:11px;color:var(--text3)">Client progress portal</div><div style="font-size:15px;font-weight:600;color:var(--text)">${p.name}</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
-        <div style="display:flex;align-items:center;gap:5px"><div style="width:7px;height:7px;border-radius:50%;background:${GR};animation:pulse 2s infinite"></div><span style="font-size:13px;color:${GR};font-weight:500">On Schedule</span></div>
+        ${bt('Pay Progress Bill','ss({showPayModal:true})','filled',GR)}
         <button onclick="go('projects')" style="background:none;border:0.5px solid var(--sep);border-radius:16px;padding:5px 12px;font-size:12px;color:var(--text3)">Back</button>
       </div>
     </div>
     <div style="max-width:900px;margin:0 auto;padding:20px">
-      <div style="display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:12px;margin-bottom:20px">
-        <div style="background:${BL};border-radius:13px;padding:20px">
-          <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:4px;text-transform:uppercase;letter-spacing:.08em">Overall Progress</div>
-          <div style="font-size:48px;font-weight:700;color:#fff;letter-spacing:-.04em;line-height:1;margin-bottom:10px">${p.pct}%</div>
-          ${pb(p.pct,'rgba(255,255,255,.9)',7)}
-          <div style="font-size:12px;color:rgba(255,255,255,.65);margin-top:5px">Week 7 of 19 · Est. completion: Oct 2025</div>
+      ${A.showPayModal?`<div style="position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px"><div class="card fade" style="max-width:400px;width:100%;padding:32px;text-align:center">
+        <div style="font-size:20px;font-weight:800;margin-bottom:12px">Secure Checkout</div>
+        <div style="font-size:13px;color:var(--text3);margin-bottom:24px">Pay Billing PR-02 via domestic PH gateways.</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <button onclick="alert('Redirecting to GCash...');ss({showPayModal:false})" style="background:#0163FF;color:#fff;border:none;border-radius:13px;padding:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center">Pay with GCash <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/1/1b/GCash_logo.svg/1024px-GCash_logo.svg.png" style="height:20px;filter:brightness(10)"></button>
+          <button onclick="alert('Redirecting to Maya...');ss({showPayModal:false})" style="background:#000;color:#fff;border:none;border-radius:13px;padding:16px;font-weight:700;display:flex;justify-content:space-between;align-items:center">Pay with Maya <span style="font-weight:900;color:#00FFA3">M</span></button>
+          <div style="font-size:11px;color:var(--text4);margin-top:12px">Powered by ConstructAI x Maya Business</div>
         </div>
-        ${st('💰','Contract Value',fmtK(p.value),BL)}${st('📅','Next Milestone','Apr 18',OR)}${st('📸','Last Update','Mar 18',GR)}
+      </div></div>`:''}
+      <div style="display:grid;grid-template-columns:2.2fr 1fr;gap:20px;margin-bottom:24px">
+        <div class="card" style="height:350px;display:flex;flex-direction:column;background:linear-gradient(135deg,#000,#222);border:none;overflow:hidden">
+            <div style="padding:16px;border-bottom:0.5px solid rgba(255,255,255,.1);display:flex;justify-content:space-between;align-items:center">
+                <span style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.1em">3D Digital Twin (BIM)</span>
+                ${bdg('Live Progress',GR)}
+            </div>
+            <div style="flex:1;display:flex;align-items:center;justify-content:center;perspective:1000px">
+                <div style="width:140px;height:120px;background:${BL}40;border:3px solid ${BL};border-radius:4px;transform:rotateX(30deg) rotateY(45deg);position:relative;box-shadow:0 0 30px ${BL}60">
+                    <div style="position:absolute;inset:0;background:linear-gradient(45deg,transparent,${BL}20)"></div>
+                    <div style="position:absolute;bottom:100%;left:0;right:0;height:80px;background:${BL}30;border:2px solid ${BL};clip-path:polygon(50% 0%, 0% 100%, 100% 100%);padding:20px;color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center">${p.pct}%</div>
+                    <div style="position:absolute;top:0;left:0;right:0;bottom:0;border:1px solid rgba(255,255,255,.2);background:repeating-linear-gradient(45deg,rgba(0,0,0,0),rgba(0,0,0,0) 10px,rgba(255,255,255,.05) 10px,rgba(255,255,255,.05) 11px)"></div>
+                </div>
+            </div>
+            <div style="padding:14px;background:rgba(255,255,255,.03);font-size:11px;color:rgba(255,255,255,.6);text-align:center">Current Phase: <b style="color:#fff">${p.phase}</b> (Simulated Digital Twin)</div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="background:${BL};border-radius:13px;padding:20px">
+                <div style="font-size:11px;color:rgba(255,255,255,.7);margin-bottom:4px;text-transform:uppercase">Overall Progress</div>
+                <div style="font-size:48px;font-weight:700;color:#fff;letter-spacing:-.04em">${p.pct}%</div>
+                ${pb(p.pct,'rgba(255,255,255,.9)',7)}
+            </div>
+            ${st('💰','Contract Value',fmtK(p.value),BL)}${st('📅','Next Milestone','Apr 18',OR)}
+        </div>
       </div>
       <div style="display:flex;gap:4px;background:var(--card2);border-radius:20px;padding:4px;margin-bottom:20px;width:fit-content">
         ${PT.map(([id,label])=>`<button onclick="ss({portalTab:'${id}'})" style="padding:7px 18px;border-radius:16px;border:none;background:${A.portalTab===id?'var(--card)':'transparent'};color:var(--text);font-size:13px;font-weight:${A.portalTab===id?500:400};box-shadow:${A.portalTab===id?'var(--sh)':'none'}">${label}</button>`).join('')}
@@ -1736,6 +1775,7 @@ async function loadProjectData(projectId){
 }
 
 async function initApp(){
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js');
   const params=new URLSearchParams(window.location.search);
   const ref=params.get('ref');
   if(ref){
