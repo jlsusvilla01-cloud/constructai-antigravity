@@ -2702,7 +2702,6 @@ function updBOQ(i,v){const r=[...A.boqRates];r[i]=parseFloat(v)||0;A.boqRates=r;
 function sendMsg(){const input=document.getElementById('mi');const text=input?input.value.trim():'';if(!text)return;A.messages.push({from:'client',text,time:'Just now'});render();setTimeout(()=>{A.messages.push({from:'contractor',text:'Got it! I will update you with the latest status shortly.',time:'Just now'});render();},1200);}
 function saveFaq(){const q=document.getElementById('fq')?.value||'';const a=document.getElementById('fa')?.value||'';if(!q||!a)return;if(A.editFaqIdx!==null){A.faqs=A.faqs.map((f,i)=>i===A.editFaqIdx?{...f,q,a}:f);}else{A.faqs.push({id:Date.now(),q,a});}A.showFaqForm=false;A.editFaqIdx=null;A.editFaqQ='';A.editFaqA='';render();}
 function editFaq(i){const f=A.faqs[i];ss({showFaqForm:true,editFaqIdx:i,editFaqQ:f.q,editFaqA:f.a});}
-function delFaq(i){A.faqs=A.faqs.filter((_,j)=>j!==i);render();}
 function delTestimonial(i){A.testimonials=A.testimonials.filter((_,j)=>j!==i);render();}
 function logDelivery(){const id=parseInt(document.getElementById('dm')?.value);const q=parseFloat(document.getElementById('dq')?.value)||0;if(!id||q<=0)return;A.inventory=A.inventory.map(i=>i.id===id?{...i,delivered:i.delivered+q}:i);A.showDelivery=false;render();}
 function logUsage(){const id=parseInt(document.getElementById('um')?.value);const q=parseFloat(document.getElementById('uq')?.value)||0;if(!id||q<=0)return;A.inventory=A.inventory.map(i=>i.id===id?{...i,used:Math.min(i.delivered,i.used+q)}:i);A.showUsage=false;render();}
