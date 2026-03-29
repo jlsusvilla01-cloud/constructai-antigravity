@@ -2608,27 +2608,6 @@ async function updateInvoiceStatus(invoiceId, newStatus){
   }
 }
 
-async function createInvoice(clientName, project, amount, dueDate){
-  if(!A.user?.id) return;
-  const invId = 'INV-' + new Date().getFullYear() + '-' + String(Date.now()).slice(-4);
-  const invoice = {
-    user_id: A.user.id,
-    client_name: clientName,
-    project_name: project,
-    amount: Number(amount),
-    due_date: dueDate,
-    issued_date: new Date().toISOString().split('T')[0],
-    status: 'Draft'
-  };
-  const {data, error} = await SB.from('invoices').insert([invoice]).select();
-  if(error) return alert('Error creating invoice: ' + error.message);
-  // Auto-log revenue + AR in GL
-  await logGLEntry('4000 - Project Revenue', 0, Number(amount), `Invoice ${invId} — ${project}`, 'Revenue');
-  await logGLEntry('1100 - Accounts Receivable', Number(amount), 0, `Invoice ${invId} — ${clientName}`, 'Asset');
-  A.invoices = [{...invoice, id:data[0].id, client:clientName, project, due:dueDate, issued:invoice.issued_date}, ...A.invoices];
-  render();
-}
-
 async function loadProjectData(projectId){
   const[punches,inv,bills,cos,msgs]=await Promise.all([
     SB.from('punches').select('*').eq('project_id',projectId).order('created_at'),
