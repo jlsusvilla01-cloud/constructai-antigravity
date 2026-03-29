@@ -1546,7 +1546,6 @@ async function genericPayLink(ref,amount,desc,btnTitle){
 function sendPayLink(ref,amount,desc){ genericPayLink(ref,amount,desc,'Send Link'); }
 function clientPayLink(ref,amount,desc){ genericPayLink(ref,amount,desc,'Pay Now →'); }
 function resolvePunch(id){A.punches=A.punches.map(p=>p.id===id?{...p,status:'Resolved'}:p);render();}
-function addPunch(){const area=document.getElementById('pa')?.value||'';const item=document.getElementById('pi')?.value||'';const trade=document.getElementById('pt')?.value||'';if(!area||!item)return;A.punches.push({id:Date.now(),area,item,trade,priority:'Med',status:'Open',due:'TBD'});A.showPunchForm=false;render();}
 function updBOQ(i,v){const r=[...A.boqRates];r[i]=parseFloat(v)||0;A.boqRates=r;render();}
 function sendMsg(){const input=document.getElementById('mi');const text=input?input.value.trim():'';if(!text)return;A.messages.push({from:'client',text,time:'Just now'});render();setTimeout(()=>{A.messages.push({from:'contractor',text:'Got it! I will update you with the latest status shortly.',time:'Just now'});render();},1200);}
 function saveFaq(){const q=document.getElementById('fq')?.value||'';const a=document.getElementById('fa')?.value||'';if(!q||!a)return;if(A.editFaqIdx!==null){A.faqs=A.faqs.map((f,i)=>i===A.editFaqIdx?{...f,q,a}:f);}else{A.faqs.push({id:Date.now(),q,a});}A.showFaqForm=false;A.editFaqIdx=null;A.editFaqQ='';A.editFaqA='';render();}
