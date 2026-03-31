@@ -128,9 +128,11 @@ if(_dl.length===0){
   localStorage.setItem('dl_cache',JSON.stringify(_dl));
 }
 window.addEventListener('online',()=>{
+  ss({isOnline:true});
   let c=false; _dl.forEach(r=>{if(!r.s){r.s=true;c=true;}});
   if(c){localStorage.setItem('dl_cache',JSON.stringify(_dl)); render();}
 });
+window.addEventListener('offline',()=>ss({isOnline:false}));
 const fmt=n=>'₱'+Number(n).toLocaleString();
 const fmtK=n=>n>=1e6?'₱'+(n/1e6).toFixed(2)+'M':'₱'+(n/1e3).toFixed(0)+'k';
 const cl=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -412,7 +414,16 @@ let A={
     {id:'FT-004',n:'Service Pickup (Hilux)',loc:'ConstructAI Taguig HQ',fuel:68,health:94,status:'Parked',lastMaint:'Mar 22'},
   ],
   simulationActive:true, cmdkOpen:false, cmdkQuery:'',
+  isOnline: navigator.onLine,
   attendance:[], gl_entries:[], invoices:[], subscription_events:[],
+  warehouses: [
+    {id:'W-MAIN',n:'Taguig Central Depot',loc:'C5 Road, Taguig',stock:['Cement: 1200','Rebar 12mm: 4500kg','Paint: 80 cans'],manager:'Juone Susvilla'},
+    {id:'W-QC',n:'QC Satellite Office',loc:'Commonwealth, QC',stock:['Cement: 150','Tools: 42'],manager:'Luis Reyes'}
+  ],
+  aiVisionHistory: [
+    {id:'VIS-001',type:'Structural Drawing',file:'Santos_Slab_L1.pdf',result:'82.4% Match with BOQ',date:'Mar 26'},
+    {id:'VIS-002',type:'Site Photo',file:'Foundation_Gate_3.jpg',result:'Excavation depth verified: 1.5m',date:'Mar 25'}
+  ],
 };
 function simulateHardware(){
   if(!A.simulationActive)return;
@@ -439,7 +450,6 @@ const sc=s=>({Received:GR,Pass:GR,Approved:GR,Resolved:GR,Completed:GR,done:GR,P
 const bdg=(t,c)=>`<span style="background:${c}20;color:${c};border-radius:20px;padding:2px 10px;font-size:12px;font-weight:500;white-space:nowrap">${t}</span>`;
 const cd=(html,style='')=>`<div class="card" style="${style}">${html}</div>`;
 const st=(icon,label,val,color)=>`<div class="card2"><div style="font-size:20px;margin-bottom:8px">${icon}</div><div style="font-size:22px;font-weight:700;color:${color};margin-bottom:2px;letter-spacing:-.02em">${val}</div><div style="font-size:13px;color:var(--text3)">${label}</div></div>`;
-const cl=(v,min,max)=>Math.max(min,Math.min(max,v));
 const pb=(v,c,h=6)=>`<div style="height:${h}px;background:var(--card3);border-radius:${h}px;overflow:hidden"><div style="height:100%;width:${cl(v,0,100)}%;background:${c};border-radius:${h}px;transition:width .8s ease"></div></div>`;
 const bt=(label,oc,v='filled',c,sm)=>{const col=c||BL;const bg=v==='filled'?col:v==='tinted'?col+'20':'transparent';const tc=v==='filled'?'#fff':col;return`<button onclick="${oc}" style="background:${bg};color:${tc};border:${v==='ghost'?'0.5px solid var(--sep)':'none'};border-radius:20px;padding:${sm?'5px 12px':'9px 18px'};font-size:${sm?12:13}px;font-weight:500;white-space:nowrap">${label}</button>`;};
 
@@ -475,8 +485,14 @@ function NAV(){
   const isErp = ['erp','finance','hr','supply','operations'].includes(A.view);
   return`<nav style="background:var(--nav);backdrop-filter:saturate(180%) blur(20px);border-bottom:0.5px solid var(--sep);padding:0 16px;display:flex;align-items:center;justify-content:space-between;height:50px;position:sticky;top:0;z-index:200;transition:background .3s">
     <div style="display:flex;align-items:center;gap:8px;cursor:pointer" onclick="go('landing')">
-      <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover">
-      <span style="font-size:15px;font-weight:700;letter-spacing:-.02em;color:var(--text)">ConstructAI <span style="color:${BL}">ERP</span></span>
+      <img src="logo.png" style="width:28px;height:28px;border-radius:8px;object-fit:cover;box-shadow:0 0 10px ${A.isOnline?BL+'40':RD+'40'}">
+      <div style="display:flex;flex-direction:column;line-height:1">
+        <span style="font-size:14px;font-weight:800;letter-spacing:-.02em;color:var(--text)">ConstructAI <span style="color:${BL}">ERP</span></span>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+          <div style="width:5px;height:5px;border-radius:50%;background:${A.isOnline?GR:RD};box-shadow:0 0 6px ${A.isOnline?GR:RD};${A.isOnline?'animation:pulse 2s infinite':''}"></div>
+          <span style="font-size:8px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:0.04em">${A.isOnline?'LIVE':'OFFLINE'}</span>
+        </div>
+      </div>
     </div>
     <div style="display:flex;gap:1px;overflow-x:auto">
       <div style="display:flex;align-items:center;gap:1px;border-right:0.5px solid var(--sep);padding-right:8px;margin-right:6px">
@@ -1273,6 +1289,7 @@ function CLIENT(){
         <div><div style="font-size:11px;color:var(--text3)">Client progress portal</div><div style="font-size:15px;font-weight:600;color:var(--text)">${p.name}</div></div>
       </div>
       <div style="display:flex;align-items:center;gap:12px">
+        ${bt('Share to WhatsApp','WH_SHARE()','tinted','#25D366',true)}
         ${bt('Pay Progress Bill','ss({showPayModal:true})','filled',GR)}
         <button onclick="go('projects')" style="background:none;border:0.5px solid var(--sep);border-radius:16px;padding:5px 12px;font-size:12px;color:var(--text3)">Back</button>
       </div>
@@ -2003,7 +2020,7 @@ function HR(){
 }
 
 function SUPPLY_CHAIN(){
-  const tabs=[{id:'vendors',l:'Vendors'},{id:'pos',l:'Purchase Orders'},{id:'logistics',l:'Logistics'},{id:'market',l:'Sub Marketplace'}];
+  const tabs=[{id:'vendors',l:'🏭 Vendors'},{id:'pos',l:'🧾 PO'},{id:'logistics',l:'🚚 Logistics'},{id:'market',l:'📢 Market'},{id:'warehouses',l:'📦 Warehouses'}];
   let C='';
   if(A.scTab==='vendors'){
     const totalYTD=A.vendors.reduce((s,v)=>s+v.ytdSpend,0);
@@ -2068,6 +2085,8 @@ function SUPPLY_CHAIN(){
         </div>
       </div>`).join('')}
     </div>`;
+  } else if(A.scTab==='warehouses'){
+    C = RENDER_WAREHOUSES();
   }
   return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
@@ -2088,7 +2107,8 @@ function OPERATIONS(){
     {id:'fleet',l:'🛰️ Fleet GPS'},
     {id:'iot',l:'📡 IoT Sensors'},
     {id:'cameras',l:'📷 IP Cameras'},
-    {id:'qc',l:'✅ Quality Control'}
+    {id:'qc',l:'✅ Quality Control'},
+    {id:'vision',l:'👁️ AI Vision'}
   ];
   let C='';
   if(A.opsTab==='workorders'){
@@ -2312,6 +2332,8 @@ function OPERATIONS(){
         </tr>`).join('')}</tbody>
       </table>
     </div>`;
+  } else if(A.opsTab==='vision'){
+    C = RENDER_VISION();
   }
   return`<div style="max-width:1200px;margin:0 auto;padding:28px 20px">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:24px">
@@ -2867,6 +2889,56 @@ function initSigPad(){
 }
 function clearSig(){const c=document.getElementById('sig-canvas');if(c&&sCtx)sCtx.clearRect(0,0,c.width,c.height);}
 function saveSig(){ss({showSigModal:false,sigSaved:true});setTimeout(()=>alert('Document digitally signed sustainably! Agreement is now legally binding.'),50);}
+
+function RENDER_VISION(){
+  return `<div class="card" style="padding:24px;text-align:center;background:linear-gradient(135deg,var(--card),var(--card2))">
+    <div style="font-size:48px;margin-bottom:16px">👁️</div>
+    <div style="font-size:22px;font-weight:700;margin-bottom:8px">AI Vision Analysis</div>
+    <p style="color:var(--text3);margin-bottom:24px;max-width:500px;margin-left:auto;margin-right:auto">Upload a structural drawing or site photo. Our AI will automatically verify rebar spacing, slab thickness, or match it against your approved BOQ.</p>
+    <div style="display:flex;justify-content:center;gap:12px;margin-bottom:32px">
+      ${bt('Upload Blueprint (PDF)','alert("Vision API: Analyzing structural drawing...")','filled',BL)}
+      ${bt('Analyze Site Photo (JPG)','alert("Vision API: Identifying rebar density...")','tinted',BL)}
+    </div>
+    <div style="text-align:left">
+      <div style="font-size:14px;font-weight:700;margin-bottom:12px;color:var(--text3)">RECENT ANALYSIS HISTORY</div>
+      ${A.aiVisionHistory.map(h=>`<div class="rh" style="display:flex;justify-content:space-between;align-items:center;padding:12px;border-bottom:0.5px solid var(--sep)">
+        <div>
+          <div style="font-size:13px;font-weight:600">${h.type}: ${h.file}</div>
+          <div style="font-size:11px;color:var(--text3)">${h.date}</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:13px;font-weight:700;color:${GR}">${h.result}</div>
+          <div style="font-size:10px;color:${BL};cursor:pointer" onclick="alert('Viewing detailed AI report...')">View Report →</div>
+        </div>
+      </div>`).join('')}
+    </div>
+  </div>`;
+}
+
+function RENDER_WAREHOUSES(){
+  return `<div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+    ${A.warehouses.map(w=>`<div class="card" style="padding:20px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:12px">
+        <div style="font-size:16px;font-weight:700">📦 ${w.n}</div>
+        ${bdg('Active',GR)}
+      </div>
+      <div style="font-size:12px;color:var(--text3);margin-bottom:12px">📍 ${w.loc}</div>
+      <div style="background:var(--card2);border-radius:10px;padding:12px;margin-bottom:16px">
+        <div style="font-size:11px;font-weight:700;color:var(--text3);margin-bottom:8px">CURRENT STOCK</div>
+        ${w.stock.map(s=>`<div style="font-size:12px;margin-bottom:4px">• ${s}</div>`).join('')}
+      </div>
+      <div style="display:flex;gap:8px">
+        ${bt('Transfer Out','alert("Stock transfer UI initiated")','tinted',OR,true)}
+        ${bt('Audit Inventory','alert("Audit log created")','ghost',null,true)}
+      </div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function WH_SHARE(){
+  const msg = encodeURIComponent(`ConstructAI Update: Santos Residence - Structural Works Phase is 65% complete. Check the real-time report here: https://constructai-antigravity.vercel.app/portal?ref=SANTOS-RES`);
+  window.open(`https://wa.me/?text=${msg}`);
+}
 
 initApp();
 </script>
