@@ -3,6 +3,9 @@
 Projects, costs, billings and profit for Philippine contractors.
 Next.js (App Router) + Supabase (Postgres, Auth) — deploys to Vercel.
 
+Live: https://constructai-erp.vercel.app (Vercel project `constructai-erp`, Supabase project
+"ConstructAI ERP", Singapore). Redeploy with `npx vercel deploy --prod` from this folder.
+
 ## What it does
 
 - **Projects** — contract amount, cost budget, client, dates, status.
