@@ -116,3 +116,33 @@ BEGIN
   END LOOP;
 END;
 $$;
+
+-- 5. Subscription & Profile Management
+CREATE TABLE IF NOT EXISTS public.profiles (
+  id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  full_name TEXT,
+  plan_type TEXT DEFAULT 'Trial',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  trial_expires_at TIMESTAMPTZ DEFAULT (NOW() + INTERVAL '14 days')
+);
+
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can only view their own profile" ON public.profiles
+  FOR SELECT USING (auth.uid() = id);
+CREATE POLICY "Users can only update their own profile" ON public.profiles
+  FOR UPDATE USING (auth.uid() = id);
+
+-- Function to handle new user signup and create profile
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, full_name, plan_type)
+  VALUES (NEW.id, NEW.raw_user_meta_data->>'full_name', 'Trial');
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Trigger on auth.users
+CREATE OR REPLACE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
