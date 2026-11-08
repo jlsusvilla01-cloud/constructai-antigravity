@@ -1,0 +1,47 @@
+@import "tailwindcss";
+
+/* Design tokens. Light theme only for now. */
+@theme {
+  --color-canvas: #f6f7f9;
+  --color-surface: #ffffff;
+  --color-line: #e4e7ec;
+  --color-ink: #101828;
+  --color-muted: #5d6679;
+  --color-faint: #98a2b3;
+
+  --color-brand: #1f5eff;
+  --color-brand-strong: #1747c7;
+  --color-brand-soft: #eef3ff;
+
+  --color-gain: #067647;
+  --color-gain-soft: #ecfdf3;
+  --color-loss: #c01048;
+  --color-loss-soft: #fff1f3;
+  --color-warn: #b54708;
+  --color-warn-soft: #fffaeb;
+
+  /* Chart series */
+  --color-series-in: #1f5eff;
+  --color-series-out: #dc6803;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Native <details> "Add" panels: hide the default marker. */
+summary::-webkit-details-marker {
+  display: none;
+}
+summary {
+  list-style: none;
+}
