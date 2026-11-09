@@ -42,6 +42,22 @@ export function ProjectForm({
               placeholder="3,650,000"
             />
           </Field>
+          <Field label="Retention (%)" hint="Withheld by the client from each progress billing. Usually 10%.">
+            <Input
+              name="retention_pct"
+              inputMode="decimal"
+              defaultValue={project ? String(project.retention_pct) : "10"}
+              placeholder="10"
+            />
+          </Field>
+          <Field label="Downpayment (%)" hint="Advance billed up front and recouped from progress billings. 0 if none.">
+            <Input
+              name="downpayment_pct"
+              inputMode="decimal"
+              defaultValue={project ? String(project.downpayment_pct) : "0"}
+              placeholder="15"
+            />
+          </Field>
           <Field label="Start date">
             <Input name="start_date" type="date" defaultValue={project?.start_date ?? ""} />
           </Field>

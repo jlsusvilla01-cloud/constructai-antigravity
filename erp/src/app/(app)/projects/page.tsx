@@ -14,9 +14,9 @@ const FILTERS = [{ value: "all", label: "All" }, ...PROJECT_STATUSES];
 
 export default async function ProjectsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
   const { status = "all" } = await searchParams;
-  const { supabase } = await getSession();
+  const { supabase, orgId } = await getSession();
 
-  let query = supabase.from("project_summary").select("*").order("created_at", { ascending: false });
+  let query = supabase.from("project_summary").select("*").eq("org_id", orgId).order("created_at", { ascending: false });
   if (status !== "all") query = query.eq("status", status);
   const { data } = await query;
   const projects = (data ?? []) as ProjectSummary[];

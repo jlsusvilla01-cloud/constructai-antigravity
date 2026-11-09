@@ -14,16 +14,17 @@ export default async function ExpensesPage({
   searchParams: Promise<{ project?: string; category?: string; month?: string }>;
 }) {
   const { project = "", category = "", month = "" } = await searchParams;
-  const { supabase } = await getSession();
+  const { supabase, orgId, isOwner } = await getSession();
 
   const { data: projectRows } = await supabase
     .from("projects")
     .select("id, name, status")
+    .eq("org_id", orgId)
     .order("created_at", { ascending: false });
   const projects = projectRows ?? [];
   const projectNames = new Map(projects.map((p) => [p.id as string, p.name as string]));
 
-  let q = supabase.from("expenses").select("*").order("date", { ascending: false }).order("created_at", { ascending: false }).limit(500);
+  let q = supabase.from("expenses").select("*").eq("org_id", orgId).order("date", { ascending: false }).order("created_at", { ascending: false }).limit(500);
   if (project === "overhead") q = q.is("project_id", null);
   else if (project) q = q.eq("project_id", project);
   if (category) q = q.eq("category", category);
@@ -91,7 +92,7 @@ export default async function ExpensesPage({
           )}
         </form>
 
-        <ExpenseTable expenses={expenses} projectNames={projectNames} />
+        <ExpenseTable expenses={expenses} projectNames={projectNames} canDelete={isOwner} />
       </Card>
     </>
   );

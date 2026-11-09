@@ -9,9 +9,9 @@ export const metadata: Metadata = { title: "Log in" };
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ notice?: string }>;
+  searchParams: Promise<{ notice?: string; next?: string }>;
 }) {
-  const { notice } = await searchParams;
+  const { notice, next } = await searchParams;
   return (
     <Card className="p-6">
       <h1 className="text-lg font-semibold text-ink">Log in</h1>
@@ -22,6 +22,7 @@ export default async function LoginPage({
         </p>
       )}
       <ActionForm action={login} className="mt-5 space-y-4" resetOnSuccess={false}>
+        {next && <input type="hidden" name="next" value={next} />}
         <Field label="Email">
           <Input name="email" type="email" autoComplete="email" required />
         </Field>

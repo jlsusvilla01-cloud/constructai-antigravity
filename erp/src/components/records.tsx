@@ -1,6 +1,5 @@
 import Link from "next/link";
 import {
-  addBilling,
   addChangeOrder,
   addExpense,
   addPayment,
@@ -11,8 +10,8 @@ import {
   setChangeOrderStatus,
 } from "@/app/actions/data";
 import { EXPENSE_CATEGORIES, labelOf, PAYMENT_METHODS } from "@/lib/constants";
-import { fmtDate, php, todayISO } from "@/lib/format";
-import type { BillingSummary, ChangeOrder, Expense, Payment } from "@/lib/types";
+import { fmtDate, php, phpExact, todayISO } from "@/lib/format";
+import type { BillingKind, BillingSummary, ChangeOrder, Expense, Payment } from "@/lib/types";
 import { BillingStatusBadge } from "./badges";
 import { ActionForm, DeleteButton, SubmitButton } from "./forms";
 import { Badge, EmptyState, Field, Input, Select, cx } from "./ui";
@@ -39,7 +38,18 @@ const td = "px-4 py-3 align-top sm:px-5";
 
 // ─── Expenses ────────────────────────────────────────────────────────────────
 
-export function ExpenseForm({ projects, projectId }: { projects?: ProjectOption[]; projectId?: string }) {
+export type BoqOption = { id: string; label: string };
+
+export function ExpenseForm({
+  projects,
+  projectId,
+  boqItems,
+}: {
+  projects?: ProjectOption[];
+  projectId?: string;
+  /** BOQ lines of the project, to charge the cost against (project page only). */
+  boqItems?: BoqOption[];
+}) {
   return (
     <ActionForm action={addExpense}>
       <div className="grid gap-3 sm:grid-cols-6">
@@ -78,6 +88,18 @@ export function ExpenseForm({ projects, projectId }: { projects?: ProjectOption[
         <Field label="Date" className="sm:col-span-2">
           <Input name="date" type="date" defaultValue={todayISO()} />
         </Field>
+        {boqItems && boqItems.length > 0 && (
+          <Field label="BOQ line" hint="Optional — for budget vs. actual per line." className="sm:col-span-6">
+            <Select name="boq_item_id" defaultValue="">
+              <option value="">Not assigned</option>
+              {boqItems.map((b) => (
+                <option key={b.id} value={b.id}>
+                  {b.label}
+                </option>
+              ))}
+            </Select>
+          </Field>
+        )}
       </div>
       <div className="mt-4 flex justify-end">
         <SubmitButton>Add cost</SubmitButton>
@@ -89,10 +111,15 @@ export function ExpenseForm({ projects, projectId }: { projects?: ProjectOption[
 export function ExpenseTable({
   expenses,
   projectNames,
+  boqNames,
+  canDelete = true,
 }: {
   expenses: Expense[];
   /** When given, shows a Project column (for the company-wide list). */
   projectNames?: Map<string, string>;
+  /** BOQ line names, shown under the description. */
+  boqNames?: Map<string, string>;
+  canDelete?: boolean;
 }) {
   if (expenses.length === 0) return <EmptyState title="No costs recorded yet">Add materials, labor and other costs as you spend.</EmptyState>;
   return (
@@ -114,7 +141,11 @@ export function ExpenseTable({
               <td className={cx(td, "whitespace-nowrap text-muted")}>{fmtDate(e.date)}</td>
               <td className={td}>
                 <p className="font-medium text-ink">{e.description}</p>
-                {e.payee && <p className="text-xs text-muted">{e.payee}</p>}
+                {(e.payee || (e.boq_item_id && boqNames?.get(e.boq_item_id))) && (
+                  <p className="text-xs text-muted">
+                    {[e.payee, e.boq_item_id ? boqNames?.get(e.boq_item_id) : null].filter(Boolean).join(" · ")}
+                  </p>
+                )}
               </td>
               {projectNames && (
                 <td className={cx(td, "text-muted")}>
@@ -132,7 +163,7 @@ export function ExpenseTable({
               </td>
               <td className={cx(td, "whitespace-nowrap text-right font-medium tabular-nums text-ink")}>{php(e.amount)}</td>
               <td className={cx(td, "text-right")}>
-                <DeleteButton action={deleteExpense.bind(null, e.id)} />
+                {canDelete && <DeleteButton action={deleteExpense.bind(null, e.id)} />}
               </td>
             </tr>
           ))}
@@ -172,7 +203,7 @@ export function ChangeOrderForm({ projectId }: { projectId: string }) {
   );
 }
 
-export function ChangeOrderTable({ items }: { items: ChangeOrder[] }) {
+export function ChangeOrderTable({ items, canDelete = true }: { items: ChangeOrder[]; canDelete?: boolean }) {
   if (items.length === 0)
     return <EmptyState title="No change orders">Approved change orders are added to the contract amount.</EmptyState>;
   return (
@@ -212,7 +243,7 @@ export function ChangeOrderTable({ items }: { items: ChangeOrder[] }) {
                       </form>
                     </>
                   )}
-                  <DeleteButton action={deleteChangeOrder.bind(null, c.id)} />
+                  {canDelete && <DeleteButton action={deleteChangeOrder.bind(null, c.id)} />}
                 </div>
               </td>
             </tr>
@@ -224,49 +255,6 @@ export function ChangeOrderTable({ items }: { items: ChangeOrder[] }) {
 }
 
 // ─── Billings & payments ─────────────────────────────────────────────────────
-
-export function BillingForm({ projects, projectId }: { projects?: ProjectOption[]; projectId?: string }) {
-  return (
-    <ActionForm action={addBilling}>
-      <div className="grid gap-3 sm:grid-cols-6">
-        {projectId ? (
-          <input type="hidden" name="project_id" value={projectId} />
-        ) : (
-          <Field label="Project" className="sm:col-span-6">
-            <Select name="project_id" required defaultValue="">
-              <option value="" disabled>
-                Choose a project…
-              </option>
-              {projects?.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </Select>
-          </Field>
-        )}
-        <Field label="Description" className="sm:col-span-4">
-          <Input name="description" placeholder="Progress billing #2 — structural frame" required />
-        </Field>
-        <Field label="Reference no." className="sm:col-span-2">
-          <Input name="reference" placeholder="PB-02" />
-        </Field>
-        <Field label="Amount (₱)" className="sm:col-span-2">
-          <Input name="amount" inputMode="decimal" placeholder="850,000" required />
-        </Field>
-        <Field label="Billing date" className="sm:col-span-2">
-          <Input name="billed_date" type="date" defaultValue={todayISO()} />
-        </Field>
-        <Field label="Due date" className="sm:col-span-2">
-          <Input name="due_date" type="date" />
-        </Field>
-      </div>
-      <div className="mt-4 flex justify-end">
-        <SubmitButton>Add billing</SubmitButton>
-      </div>
-    </ActionForm>
-  );
-}
 
 function PaymentForm({ billing }: { billing: BillingSummary }) {
   return (
@@ -298,14 +286,23 @@ function PaymentForm({ billing }: { billing: BillingSummary }) {
   );
 }
 
+const KIND_LABEL: Record<BillingKind, string | null> = {
+  progress: "Progress",
+  downpayment: "Downpayment",
+  retention_release: "Retention release",
+  other: null,
+};
+
 export function BillingList({
   billings,
   payments,
   projectNames,
+  canDelete = true,
 }: {
   billings: BillingSummary[];
   payments: Payment[];
   projectNames?: Map<string, string>;
+  canDelete?: boolean;
 }) {
   if (billings.length === 0)
     return <EmptyState title="No billings yet">Add a billing each time you invoice the client.</EmptyState>;
@@ -333,6 +330,12 @@ export function BillingList({
                         <span className="text-ink">{projectNames.get(b.project_id)}</span> ·{" "}
                       </>
                     )}
+                    {KIND_LABEL[b.kind] && (
+                      <>
+                        {KIND_LABEL[b.kind]}
+                        {b.kind === "progress" && b.percent_complete != null && ` ${Number(b.percent_complete)}%`} ·{" "}
+                      </>
+                    )}
                     Billed {fmtDate(b.billed_date)}
                     {b.due_date && <> · Due {fmtDate(b.due_date)}</>}
                   </p>
@@ -354,6 +357,26 @@ export function BillingList({
               </summary>
 
               <div className="space-y-4 bg-canvas/60 px-4 py-4 sm:px-5">
+                {(Number(b.retention_amount) > 0 || Number(b.recoupment_amount) > 0) && (
+                  <dl className="grid max-w-sm grid-cols-[1fr_auto] gap-x-4 gap-y-0.5 text-xs text-muted">
+                    <dt>Work accomplished this billing</dt>
+                    <dd className="text-right tabular-nums">{phpExact(b.gross_amount)}</dd>
+                    {Number(b.retention_amount) > 0 && (
+                      <>
+                        <dt>Less retention</dt>
+                        <dd className="text-right tabular-nums">− {phpExact(b.retention_amount)}</dd>
+                      </>
+                    )}
+                    {Number(b.recoupment_amount) > 0 && (
+                      <>
+                        <dt>Less downpayment recoupment</dt>
+                        <dd className="text-right tabular-nums">− {phpExact(b.recoupment_amount)}</dd>
+                      </>
+                    )}
+                    <dt className="font-medium text-ink">Net amount due</dt>
+                    <dd className="text-right font-medium tabular-nums text-ink">{phpExact(b.amount)}</dd>
+                  </dl>
+                )}
                 {list.length > 0 && (
                   <div>
                     <p className="mb-2 text-xs font-medium text-muted">Payments received</p>
@@ -366,7 +389,9 @@ export function BillingList({
                           </span>
                           <span className="flex items-center gap-2">
                             <span className="font-medium tabular-nums text-gain">{php(p.amount)}</span>
-                            <DeleteButton action={deletePayment.bind(null, p.id)} label="Remove" confirmText="Remove this payment?" />
+                            {canDelete && (
+                              <DeleteButton action={deletePayment.bind(null, p.id)} label="Remove" confirmText="Remove this payment?" />
+                            )}
                           </span>
                         </li>
                       ))}
@@ -379,13 +404,15 @@ export function BillingList({
                     <PaymentForm billing={b} />
                   </div>
                 )}
-                <div className="flex justify-end">
-                  <DeleteButton
-                    action={deleteBilling.bind(null, b.id)}
-                    label="Delete billing"
-                    confirmText="Delete this billing and all its payments? This can’t be undone."
-                  />
-                </div>
+                {canDelete && (
+                  <div className="flex justify-end">
+                    <DeleteButton
+                      action={deleteBilling.bind(null, b.id)}
+                      label="Delete billing"
+                      confirmText="Delete this billing and all its payments? This can’t be undone."
+                    />
+                  </div>
+                )}
               </div>
             </details>
           </li>

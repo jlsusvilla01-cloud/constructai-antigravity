@@ -1,10 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { AddPanel, BillingForm, BillingList } from "@/components/records";
+import { BillingForm } from "@/components/billing-form";
+import { AddPanel, BillingList } from "@/components/records";
 import { Card, CardHeader, PageHeader, Stat, cx } from "@/components/ui";
 import { php, toNum } from "@/lib/format";
 import { getSession } from "@/lib/org";
-import type { BillingSummary, Payment } from "@/lib/types";
+import { toBillingProject } from "@/lib/billing";
+import type { BillingSummary, Payment, ProjectSummary } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Billings" };
 
@@ -17,15 +19,15 @@ const FILTERS = [
 
 export default async function BillingsPage({ searchParams }: { searchParams: Promise<{ show?: string }> }) {
   const { show = "open" } = await searchParams;
-  const { supabase } = await getSession();
+  const { supabase, orgId, isOwner } = await getSession();
 
   const [{ data: billingRows }, { data: projectRows }] = await Promise.all([
-    supabase.from("billing_summary").select("*").order("billed_date", { ascending: false }),
-    supabase.from("projects").select("id, name, status").order("created_at", { ascending: false }),
+    supabase.from("billing_summary").select("*").eq("org_id", orgId).order("billed_date", { ascending: false }),
+    supabase.from("project_summary").select("*").eq("org_id", orgId).order("created_at", { ascending: false }),
   ]);
   const all = (billingRows ?? []) as BillingSummary[];
-  const projects = projectRows ?? [];
-  const projectNames = new Map(projects.map((p) => [p.id as string, p.name as string]));
+  const projects = (projectRows ?? []) as ProjectSummary[];
+  const projectNames = new Map(projects.map((p) => [p.id, p.name]));
 
   const outstanding = all.filter((b) => b.status !== "paid");
   const overdue = all.filter((b) => b.status === "overdue");
@@ -43,9 +45,8 @@ export default async function BillingsPage({ searchParams }: { searchParams: Pro
     ? await supabase.from("payments").select("*").in("billing_id", ids).order("date", { ascending: false })
     : { data: [] };
 
-  const open = projects
-    .filter((p) => p.status !== "cancelled" && p.status !== "bidding")
-    .map((p) => ({ id: p.id as string, name: p.name as string }));
+  const open = projects.filter((p) => p.status !== "cancelled" && p.status !== "bidding").map(toBillingProject);
+  const retentionHeld = projects.reduce((s, p) => s + toNum(p.retention_held), 0);
 
   return (
     <>
@@ -59,7 +60,15 @@ export default async function BillingsPage({ searchParams }: { searchParams: Pro
           tone={overdue.length ? "loss" : undefined}
           sub={overdue.length ? `${overdue.length} past due date` : "Nothing overdue"}
         />
-        <Stat label="Collected all-time" value={php(sum(all, "paid"))} sub={`of ${php(sum(all, "amount"))} billed`} />
+        <Stat
+          label="Collected all-time"
+          value={php(sum(all, "paid"))}
+          sub={
+            retentionHeld > 0
+              ? `of ${php(sum(all, "amount"))} billed · ${php(retentionHeld)} retention held by clients`
+              : `of ${php(sum(all, "amount"))} billed`
+          }
+        />
       </div>
 
       <Card>
@@ -81,7 +90,7 @@ export default async function BillingsPage({ searchParams }: { searchParams: Pro
             </Link>
           ))}
         </div>
-        <BillingList billings={shown} payments={(payments ?? []) as Payment[]} projectNames={projectNames} />
+        <BillingList billings={shown} payments={(payments ?? []) as Payment[]} projectNames={projectNames} canDelete={isOwner} />
       </Card>
     </>
   );

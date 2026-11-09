@@ -2,10 +2,12 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProjectStatusBadge } from "@/components/badges";
+import { BillingForm } from "@/components/billing-form";
+import { BoqPanel } from "@/components/boq";
 import { BreakdownBars } from "@/components/breakdown";
+import { PoList } from "@/components/purchasing";
 import {
   AddPanel,
-  BillingForm,
   BillingList,
   ChangeOrderForm,
   ChangeOrderTable,
@@ -13,17 +15,20 @@ import {
   ExpenseTable,
 } from "@/components/records";
 import { Card, CardHeader, LinkButton, Meter, PageHeader, Stat, cx } from "@/components/ui";
+import { toBillingProject } from "@/lib/billing";
 import { EXPENSE_CATEGORIES, labelOf } from "@/lib/constants";
 import { fmtDate, php, pct, toNum } from "@/lib/format";
 import { projectMetrics } from "@/lib/metrics";
 import { getSession } from "@/lib/org";
-import type { BillingSummary, ChangeOrder, Expense, Payment, ProjectSummary } from "@/lib/types";
+import type { BillingSummary, BoqItem, ChangeOrder, Expense, Payment, ProjectSummary, PurchaseOrderSummary } from "@/lib/types";
 
 const TABS = [
   { id: "overview", label: "Overview" },
   { id: "costs", label: "Costs" },
   { id: "billings", label: "Billings" },
   { id: "changes", label: "Change orders" },
+  { id: "boq", label: "BOQ" },
+  { id: "purchases", label: "Purchases" },
 ] as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -38,18 +43,20 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string }>;
+  searchParams: Promise<{ tab?: string; edit?: string }>;
 }) {
   const { id } = await params;
-  const { tab: rawTab } = await searchParams;
+  const { tab: rawTab, edit } = await searchParams;
   const tab = TABS.some((t) => t.id === rawTab) ? rawTab! : "overview";
-  const { supabase } = await getSession();
+  const { supabase, orgId, isOwner } = await getSession();
 
-  const [{ data: project }, { data: expenses }, { data: billings }, { data: changes }] = await Promise.all([
-    supabase.from("project_summary").select("*").eq("id", id).maybeSingle(),
+  const [{ data: project }, { data: expenses }, { data: billings }, { data: changes }, { data: boqRows }, { data: poRows }] = await Promise.all([
+    supabase.from("project_summary").select("*").eq("id", id).eq("org_id", orgId).maybeSingle(),
     supabase.from("expenses").select("*").eq("project_id", id).order("date", { ascending: false }).order("created_at", { ascending: false }),
     supabase.from("billing_summary").select("*").eq("project_id", id).order("billed_date", { ascending: false }),
     supabase.from("change_orders").select("*").eq("project_id", id).order("date", { ascending: false }),
+    supabase.from("boq_items").select("*").eq("project_id", id).order("sort_order"),
+    supabase.from("purchase_order_summary").select("*").eq("project_id", id).order("created_at", { ascending: false }),
   ]);
   if (!project) notFound();
 
@@ -58,6 +65,20 @@ export default async function ProjectPage({
   const exp = (expenses ?? []) as Expense[];
   const bills = (billings ?? []) as BillingSummary[];
   const cos = (changes ?? []) as ChangeOrder[];
+  const boq = (boqRows ?? []) as BoqItem[];
+  const pos = (poRows ?? []) as PurchaseOrderSummary[];
+
+  const actualByItem = new Map<string, number>();
+  for (const e of exp) if (e.boq_item_id) actualByItem.set(e.boq_item_id, (actualByItem.get(e.boq_item_id) ?? 0) + toNum(e.amount));
+  const committedByItem = new Map<string, number>();
+  for (const po of pos) {
+    if (po.boq_item_id && !po.expense_id && (po.status === "ordered" || po.status === "received")) {
+      committedByItem.set(po.boq_item_id, (committedByItem.get(po.boq_item_id) ?? 0) + toNum(po.total));
+    }
+  }
+  const unassigned = exp.filter((e) => !e.boq_item_id).reduce((s, e) => s + toNum(e.amount), 0);
+  const boqOptions = boq.map((b) => ({ id: b.id, label: [b.item_no, b.description].filter(Boolean).join(" ") }));
+  const boqNames = new Map(boqOptions.map((b) => [b.id, b.label]));
 
   const billingIds = bills.map((b) => b.id);
   const { data: payments } = billingIds.length
@@ -109,8 +130,13 @@ export default async function ProjectPage({
         <Stat
           label="Spent so far"
           value={php(m.cost)}
-          tone={m.overBudget ? "loss" : undefined}
-          sub={m.budget > 0 ? `${pct(m.budgetUsed, 0)} of ${php(m.budget)} budget` : "No budget set"}
+          tone={m.overBudget ? "loss" : m.committedOverBudget ? "warn" : undefined}
+          sub={
+            <>
+              {m.budget > 0 ? `${pct(m.budgetUsed, 0)} of ${php(m.budget)} budget` : "No budget set"}
+              {m.committed > 0 && <span className="block">+ {php(m.committed)} on open POs</span>}
+            </>
+          }
         />
         <Stat
           label="Collected"
@@ -156,9 +182,11 @@ export default async function ProjectPage({
                   value={`− ${php(m.estFinalCost)}`}
                   hint={
                     p.status === "completed"
-                      ? "Actual cost recorded."
-                      : m.overBudget
-                        ? "Spending is past the budget, so actual cost is used."
+                      ? m.committed > 0
+                        ? "Actual cost recorded, plus unpaid purchase orders."
+                        : "Actual cost recorded."
+                      : m.overBudget || m.committedOverBudget
+                        ? "Spending (incl. open purchase orders) is past the budget, so that is used."
                         : "Your cost budget."
                   }
                 />
@@ -182,10 +210,10 @@ export default async function ProjectPage({
                   </div>
                   <div>
                     <div className="mb-1 flex justify-between text-xs text-muted">
-                      <span>Contract billed</span>
-                      <span className="tabular-nums">{pct(m.billedPct, 0)}</span>
+                      <span>{m.percentComplete > 0 ? "Work accomplished (billed)" : "Contract billed"}</span>
+                      <span className="tabular-nums">{pct(m.percentComplete > 0 ? m.percentComplete : m.billedPct, 0)}</span>
                     </div>
-                    <Meter value={m.billedPct} />
+                    <Meter value={m.percentComplete > 0 ? m.percentComplete : m.billedPct} />
                   </div>
                 </div>
               </div>
@@ -209,6 +237,11 @@ export default async function ProjectPage({
                   <Row label="Billed, not yet paid" value={php(m.receivable)} />
                   {m.overdue > 0 && <Row label="Overdue" value={php(m.overdue)} tone="loss" />}
                   <Row label="Left to bill" value={php(m.remainingToBill)} />
+                  {m.retentionHeld > 0 && (
+                    <Row label="Retention held by client" value={php(m.retentionHeld)} hint="Billed when released after completion." />
+                  )}
+                  {m.downpaymentUnrecouped > 0 && <Row label="Downpayment still to recoup" value={php(m.downpaymentUnrecouped)} />}
+                  {m.payable > 0 && <Row label="Delivered, unpaid to suppliers" value={php(m.payable)} tone="loss" />}
                 </div>
               </div>
             </Card>
@@ -268,9 +301,9 @@ export default async function ProjectPage({
           <Card>
             <CardHeader title="Costs" sub={`${exp.length} entries · ${php(m.cost)} total`} />
             <AddPanel label="Add a cost" defaultOpen={exp.length === 0}>
-              <ExpenseForm projectId={id} />
+              <ExpenseForm projectId={id} boqItems={boqOptions} />
             </AddPanel>
-            <ExpenseTable expenses={exp} />
+            <ExpenseTable expenses={exp} boqNames={boqNames} canDelete={isOwner} />
           </Card>
         )}
 
@@ -278,12 +311,21 @@ export default async function ProjectPage({
           <Card>
             <CardHeader
               title="Billings & payments"
-              sub={`${php(m.billed)} billed · ${php(m.collected)} collected · ${php(m.remainingToBill)} left to bill`}
+              sub={
+                `${php(m.billed)} billed · ${php(m.collected)} collected · ${php(m.remainingToBill)} left to bill` +
+                (m.retentionHeld > 0 ? ` · ${php(m.retentionHeld)} retention held` : "") +
+                ` · retention ${toNum(p.retention_pct)}%, downpayment ${toNum(p.downpayment_pct)}%`
+              }
+              action={
+                <Link href={`/projects/${id}/edit`} className="whitespace-nowrap text-xs font-medium text-brand hover:underline">
+                  Billing terms
+                </Link>
+              }
             />
             <AddPanel label="Add a billing" defaultOpen={bills.length === 0}>
-              <BillingForm projectId={id} />
+              <BillingForm projects={[toBillingProject(p)]} fixedProjectId={id} />
             </AddPanel>
-            <BillingList billings={bills} payments={(payments ?? []) as Payment[]} />
+            <BillingList billings={bills} payments={(payments ?? []) as Payment[]} canDelete={isOwner} />
           </Card>
         )}
 
@@ -296,7 +338,34 @@ export default async function ProjectPage({
             <AddPanel label="Add a change order">
               <ChangeOrderForm projectId={id} />
             </AddPanel>
-            <ChangeOrderTable items={cos} />
+            <ChangeOrderTable items={cos} canDelete={isOwner} />
+          </Card>
+        )}
+
+        {tab === "boq" && (
+          <BoqPanel
+            projectId={id}
+            items={boq}
+            actualByItem={actualByItem}
+            committedByItem={committedByItem}
+            unassigned={unassigned}
+            budget={m.budget}
+            editId={edit}
+          />
+        )}
+
+        {tab === "purchases" && (
+          <Card>
+            <CardHeader
+              title="Purchase orders"
+              sub={`${pos.length} POs · ${php(m.committed)} committed, not yet paid${m.payable > 0 ? ` · ${php(m.payable)} delivered & unpaid` : ""}`}
+              action={
+                <LinkButton href={`/purchasing/new?project=${id}`} className="px-3 py-1.5 text-xs">
+                  + New PO
+                </LinkButton>
+              }
+            />
+            <PoList pos={pos} />
           </Card>
         )}
       </div>
