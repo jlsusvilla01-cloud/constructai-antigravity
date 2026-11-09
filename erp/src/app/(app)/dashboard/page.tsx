@@ -20,7 +20,7 @@ const monthKey = (d: string) => d.slice(0, 7);
 export default async function DashboardPage({ searchParams }: { searchParams: Promise<{ period?: string }> }) {
   const { period: rawPeriod } = await searchParams;
   const period = PERIODS.some((p) => p.value === rawPeriod) ? rawPeriod! : "ytd";
-  const { supabase, orgName } = await getSession();
+  const { supabase, orgId, orgName } = await getSession();
 
   const today = todayISO();
   const now = new Date(`${today}T00:00:00`);
@@ -31,9 +31,9 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   const fetchFrom = periodStart < chartStart ? periodStart : chartStart;
 
   const [{ data: projectRows }, { data: paymentRows }, { data: expenseRows }] = await Promise.all([
-    supabase.from("project_summary").select("*"),
-    supabase.from("payments").select("date, amount").gte("date", fetchFrom),
-    supabase.from("expenses").select("date, amount, project_id").gte("date", fetchFrom),
+    supabase.from("project_summary").select("*").eq("org_id", orgId),
+    supabase.from("payments").select("date, amount").eq("org_id", orgId).gte("date", fetchFrom),
+    supabase.from("expenses").select("date, amount, project_id").eq("org_id", orgId).gte("date", fetchFrom),
   ]);
   const projects = (projectRows ?? []) as ProjectSummary[];
   const payments = (paymentRows ?? []) as { date: string; amount: number }[];
@@ -82,11 +82,22 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
   for (const { p, m } of active) {
     if (m.overdue > 0) alerts.push({ id: p.id, name: p.name, text: `${php(m.overdue)} overdue from client`, tone: "loss" });
     if (m.overBudget) alerts.push({ id: p.id, name: p.name, text: `Over budget by ${php(m.cost - m.budget)}`, tone: "loss" });
+    else if (m.committedOverBudget)
+      alerts.push({ id: p.id, name: p.name, text: `Spent + open POs exceed budget by ${php(m.cost + m.committed - m.budget)}`, tone: "warn" });
     else if (m.budgetUsed > 90) alerts.push({ id: p.id, name: p.name, text: `${pct(m.budgetUsed, 0)} of budget used`, tone: "warn" });
+    if (m.payable > 0) alerts.push({ id: p.id, name: p.name, text: `${php(m.payable)} delivered, unpaid to suppliers`, tone: "warn" });
     if (m.projectedProfit < 0) alerts.push({ id: p.id, name: p.name, text: `Heading for a ${php(-m.projectedProfit)} loss`, tone: "loss" });
     if (p.end_date && p.end_date < today && p.status === "active")
       alerts.push({ id: p.id, name: p.name, text: "Past target completion date", tone: "warn" });
   }
+
+  // Completed jobs where the client still holds retention: time to bill its release.
+  for (const p of projects) {
+    const held = toNum(p.retention_held);
+    if (p.status === "completed" && held > 0)
+      alerts.push({ id: p.id, name: p.name, text: `${php(held)} retention to collect — bill its release`, tone: "warn" });
+  }
+  const retentionHeld = projects.reduce((s, p) => s + toNum(p.retention_held), 0);
 
   const periodLabel = PERIODS.find((p) => p.value === period)!.label.toLowerCase();
 
@@ -137,7 +148,12 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
               label="Still to collect"
               value={php(receivable)}
               tone={overdue > 0 ? "warn" : undefined}
-              sub={overdue > 0 ? <span className="text-loss">{php(overdue)} overdue</span> : "Nothing overdue"}
+              sub={
+                <>
+                  {overdue > 0 ? <span className="text-loss">{php(overdue)} overdue</span> : "Nothing overdue"}
+                  {retentionHeld > 0 && <span className="block">+ {php(retentionHeld)} retention held</span>}
+                </>
+              }
             />
           </div>
 

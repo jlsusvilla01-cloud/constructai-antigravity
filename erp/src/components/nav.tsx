@@ -9,6 +9,7 @@ const ITEMS = [
   { href: "/projects", label: "Projects", icon: "M3 21V9l9-6 9 6v12h-6v-7H9v7H3z" },
   { href: "/expenses", label: "Costs", icon: "M4 4h16v4H4V4zm0 6h16v10H4V10zm4 3v2h8v-2H8z" },
   { href: "/billings", label: "Billings", icon: "M6 2h9l5 5v15H6V2zm8 1.5V8h4.5M9 12h8M9 16h8" },
+  { href: "/purchasing", label: "Purchasing", icon: "M3 4h2l2.4 11h11.2L21 7H6.2M9 20a1 1 0 100-2 1 1 0 000 2zm9 0a1 1 0 100-2 1 1 0 000 2z" },
 ];
 
 function Icon({ d }: { d: string }) {
@@ -45,7 +46,7 @@ export function SideNav() {
 export function BottomNav() {
   const path = usePathname();
   return (
-    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-4 border-t border-line bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+    <nav className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-line print:hidden bg-surface/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
       {ITEMS.map((it) => (
         <Link
           key={it.href}

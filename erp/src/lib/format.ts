@@ -46,3 +46,13 @@ export function todayISO() {
   const off = d.getTimezoneOffset();
   return new Date(d.getTime() - off * 60000).toISOString().slice(0, 10);
 }
+
+/** Parses a typed number: accepts "1,250,000", "₱ 1250000.50", "10%". Returns NaN when not a number. */
+export function num(raw: string, decimals = 2) {
+  const clean = raw.replace(/[₱,%\s]/g, "");
+  if (clean === "") return NaN;
+  const n = Number(clean);
+  if (!Number.isFinite(n)) return NaN;
+  const f = 10 ** decimals;
+  return Math.round(n * f) / f;
+}

@@ -45,3 +45,9 @@ summary::-webkit-details-marker {
 summary {
   list-style: none;
 }
+
+@media print {
+  body {
+    background: #fff;
+  }
+}

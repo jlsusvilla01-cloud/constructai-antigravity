@@ -1,5 +1,5 @@
 import { BILLING_STATUS_LABEL, labelOf, PROJECT_STATUSES } from "@/lib/constants";
-import type { BillingStatus, ProjectStatus } from "@/lib/types";
+import type { BillingStatus, PoStatus, ProjectStatus } from "@/lib/types";
 import { Badge, type Tone } from "./ui";
 
 const PROJECT_TONE: Record<ProjectStatus, Tone> = {
@@ -23,4 +23,17 @@ const BILLING_TONE: Record<BillingStatus, Tone> = {
 
 export function BillingStatusBadge({ status }: { status: BillingStatus }) {
   return <Badge tone={BILLING_TONE[status]}>{BILLING_STATUS_LABEL[status]}</Badge>;
+}
+
+/** A PO's delivery status, or "Paid" once its cost is recorded. */
+export function PoStatusBadge({ status, paid }: { status: PoStatus; paid: boolean }) {
+  if (paid) return <Badge tone="gain">{status === "received" ? "Received · paid" : "Paid"}</Badge>;
+  const map: Record<PoStatus, [Tone, string]> = {
+    draft: ["neutral", "Draft"],
+    ordered: ["brand", "Ordered"],
+    received: ["warn", "Received · unpaid"],
+    cancelled: ["neutral", "Cancelled"],
+  };
+  const [tone, label] = map[status];
+  return <Badge tone={tone}>{label}</Badge>;
 }
