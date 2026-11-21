@@ -1,0 +1,4 @@
+# The old static site is served from the repo root (vercel.json outputDirectory ".").
+# Keep the ERP source (deployed separately from erp/) and repo tooling out of it.
+erp
+.github
