@@ -51,3 +51,50 @@ summary {
     background: #fff;
   }
 }
+
+/* ─── Landing presentation ─────────────────────────────────────────────── */
+.deck {
+  font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+.deck .deck-logo {
+  color: #fff;
+  transition: color 0.3s;
+}
+.deck[data-tone="light"] .deck-logo {
+  color: #0f172a;
+}
+/* Reveal animations only once the deck's script is running, so the page reads fine without JS. */
+.deck[data-deck="ready"] .slide .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 0.7s ease,
+    transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.deck[data-deck="ready"] .slide[data-shown="true"] .reveal {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .deck[data-deck="ready"] .slide .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .deck {
+    scroll-behavior: auto;
+  }
+}
+.deck .deck-header {
+  background: rgb(10 18 48 / 0.65);
+  transition: background 0.3s;
+}
+.deck[data-tone="light"] .deck-header {
+  background: rgb(244 246 250 / 0.8);
+}
+@media (min-width: 1024px) {
+  .deck .deck-header,
+  .deck[data-tone="light"] .deck-header {
+    background: transparent;
+  }
+}
