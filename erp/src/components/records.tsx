@@ -389,6 +389,12 @@ export function BillingList({
                           </span>
                           <span className="flex items-center gap-2">
                             <span className="font-medium tabular-nums text-gain">{php(p.amount)}</span>
+                            <Link
+                              href={`/billings/${b.id}/receipt/${p.id}`}
+                              className="rounded-md px-2 py-1 text-xs font-medium text-brand hover:bg-brand-soft"
+                            >
+                              Receipt
+                            </Link>
                             {canDelete && (
                               <DeleteButton action={deletePayment.bind(null, p.id)} label="Remove" confirmText="Remove this payment?" />
                             )}
@@ -404,6 +410,10 @@ export function BillingList({
                     <PaymentForm billing={b} />
                   </div>
                 )}
+                <div className="flex items-center justify-between gap-2">
+                  <Link href={`/billings/${b.id}`} className="text-sm font-medium text-brand hover:underline">
+                    View / print billing
+                  </Link>
                 {canDelete && (
                   <div className="flex justify-end">
                     <DeleteButton
@@ -413,6 +423,7 @@ export function BillingList({
                     />
                   </div>
                 )}
+                </div>
               </div>
             </details>
           </li>

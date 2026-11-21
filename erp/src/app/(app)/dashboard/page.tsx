@@ -83,7 +83,7 @@ export default async function DashboardPage({ searchParams }: { searchParams: Pr
     if (m.overdue > 0) alerts.push({ id: p.id, name: p.name, text: `${php(m.overdue)} overdue from client`, tone: "loss" });
     if (m.overBudget) alerts.push({ id: p.id, name: p.name, text: `Over budget by ${php(m.cost - m.budget)}`, tone: "loss" });
     else if (m.committedOverBudget)
-      alerts.push({ id: p.id, name: p.name, text: `Spent + open POs exceed budget by ${php(m.cost + m.committed - m.budget)}`, tone: "warn" });
+      alerts.push({ id: p.id, name: p.name, text: `Spent + open POs + unpaid labor exceed budget by ${php(m.cost + m.committed - m.budget)}`, tone: "warn" });
     else if (m.budgetUsed > 90) alerts.push({ id: p.id, name: p.name, text: `${pct(m.budgetUsed, 0)} of budget used`, tone: "warn" });
     if (m.payable > 0) alerts.push({ id: p.id, name: p.name, text: `${php(m.payable)} delivered, unpaid to suppliers`, tone: "warn" });
     if (m.projectedProfit < 0) alerts.push({ id: p.id, name: p.name, text: `Heading for a ${php(-m.projectedProfit)} loss`, tone: "loss" });

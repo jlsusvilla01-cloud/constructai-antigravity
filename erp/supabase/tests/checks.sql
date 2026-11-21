@@ -174,3 +174,56 @@ savepoint a; select save_purchase_order_items(:'po1', '[]'); rollback to a;
 select 'P4 empty rejected' as t, true as pass;
 select 'P5 draft not committed' as t, committed_cost = 5000 as pass from project_summary where id = :'proj';
 rollback;
+
+-- ─── Labor: workers, site log, payroll ──────────────────────────────────────
+begin;
+select id as demo from auth.users where email='demo@constructai.test' \gset
+select id as staff from auth.users where email='staff@constructai.test' \gset
+select org_id as org from organization_members where user_id = :'demo' \gset
+insert into projects (org_id, name, contract_amount) values (:'org', 'Labor check project', 1000000) returning id as proj \gset
+insert into auth.users (id, email, aud, role) values ('66666666-6666-4666-8666-666666666666', 'outsider@test.ph', 'authenticated', 'authenticated');
+select org_id as org2 from organization_members where user_id = '66666666-6666-4666-8666-666666666666' \gset
+select set_config('role','authenticated',true), set_config('request.jwt.claims', json_build_object('sub', :'staff','role','authenticated')::text, true) \gset
+insert into workers (org_id, name, position, daily_rate) values (:'org', 'Check Mason', 'Mason', 800) returning id as w1 \gset
+insert into workers (org_id, name, position, daily_rate) values (:'org', 'Check Helper', 'Helper', 600) returning id as w2 \gset
+insert into attendance (org_id, project_id, worker_id, date, days, ot_hours) values (:'org', :'proj', :'w1', '2026-11-16', 1, 2);
+insert into attendance (org_id, project_id, worker_id, date, days) values (:'org', :'proj', :'w2', '2026-11-16', 0.5);
+insert into attendance (org_id, project_id, worker_id, date, days) values (:'org', :'proj', :'w1', '2026-11-25', 1);
+select 'L1 rate copied, OT at 125%' as t, (select amount from attendance where worker_id = :'w1' and date = '2026-11-16') = 1050 as pass;
+select 'L2 unpaid labor on summary' as t, unpaid_labor = 2150 as pass from project_summary where id = :'proj';
+update workers set daily_rate = 900 where id = :'w1';
+select 'L3 raise does not change past entries' as t, (select amount from attendance where worker_id = :'w1' and date = '2026-11-16') = 1050 as pass;
+savepoint a; insert into attendance (org_id, project_id, worker_id, date) values (:'org', :'proj', :'w1', '2026-11-16'); rollback to a;
+select 'L4 same worker twice a day rejected (error above expected)' as t, true as pass;
+select cost_to_date as cost0 from project_summary where id = :'proj' \gset
+select record_payroll(:'proj', '2026-11-16', '2026-11-22', '2026-11-22') as run \gset
+select 'L5 payroll records labor cost' as t, cost_to_date = :cost0 + 1350 and unpaid_labor = 800 as pass from project_summary where id = :'proj';
+select 'L6 run totals' as t, total = 1350 and worker_count = 2 as pass from payroll_runs where id = :'run';
+savepoint b; update attendance set days = 0.5 where worker_id = :'w2'; rollback to b;
+select 'L7 paid day locked (error above expected)' as t, true as pass;
+savepoint c; select record_payroll(:'proj', '2026-11-16', '2026-11-22'); rollback to c;
+select 'L8 nothing left to pay (error above expected)' as t, true as pass;
+savepoint d; select undo_payroll(:'run'); rollback to d;
+select 'L9 staff undo blocked (error above expected)' as t, true as pass;
+reset role;
+select set_config('role','authenticated',true), set_config('request.jwt.claims', json_build_object('sub', :'demo','role','authenticated')::text, true) \gset
+select undo_payroll(:'run');
+select 'L10 owner undo removes cost, unlocks days' as t, cost_to_date = :cost0 and unpaid_labor = 2150 as pass from project_summary where id = :'proj';
+select record_payroll(:'proj', '2026-11-16', '2026-11-30') as run2 \gset
+select expense_id as exp2 from payroll_runs where id = :'run2' \gset
+delete from expenses where id = :'exp2';
+select 'L11 deleting the labor cost undoes the payroll' as t, not exists (select 1 from payroll_runs where id = :'run2') and (select count(*) from attendance where project_id = :'proj' and payroll_run_id is null) = 3 as pass;
+select record_payroll(:'proj', '2026-11-16', '2026-11-30') is not null as paid_again;
+reset role;
+select set_config('role','authenticated',true), set_config('request.jwt.claims', json_build_object('sub', '66666666-6666-4666-8666-666666666666','role','authenticated')::text, true) \gset
+select 'L12 outsider sees no workers or site log' as t, (select count(*) from workers) = 0 and (select count(*) from attendance) = 0 and (select count(*) from payroll_runs) = 0 as pass;
+insert into projects (org_id, name) values (:'org2', 'Outsider P') returning id as p2 \gset
+savepoint e; insert into attendance (org_id, project_id, worker_id, date) values (:'org2', :'p2', :'w1', '2026-11-17'); rollback to e;
+select 'L13 other company''s worker rejected (error above expected)' as t, true as pass;
+reset role;
+select set_config('role','authenticated',true), set_config('request.jwt.claims', json_build_object('sub', :'demo','role','authenticated')::text, true) \gset
+with d as (delete from projects where id = :'proj' returning 1) select 'L14 owner deletes project with paid payroll' as t, count(*) = 1 as pass from d;
+reset role;
+delete from organizations where id = :'org';
+select 'L15 company delete cascades' as t, not exists (select 1 from workers where org_id = :'org') as pass;
+rollback;

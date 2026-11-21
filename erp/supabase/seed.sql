@@ -178,6 +178,29 @@ begin
     (org, po, 'GA26 rib-type roofing sheet, 10 ft', 'sheet', 60, 1350, 0),
     (org, po, 'Tek screws, 2"', 'box', 4, 850, 1);
 
+  -- Company details for printed documents
+  update public.organizations set address = '45 Lopez Jaena St., Jaro, Iloilo City', tin = '123-456-789-000',
+    phone = '0917 555 0199', email = 'billing@delacruzbuilders.test' where id = org;
+
+  -- Crew, and the last six working days on the Santos site (not yet in a payroll)
+  insert into public.workers (org_id, name, position, daily_rate) values
+    (org, 'Ramon Villanueva', 'Foreman', 1100),
+    (org, 'Jun Aquino', 'Mason', 850),
+    (org, 'Leo Bautista', 'Carpenter', 850),
+    (org, 'Nonoy Garcia', 'Steelman', 800),
+    (org, 'Arnel Cruz', 'Helper', 620),
+    (org, 'Dodong Ramos', 'Helper', 620);
+  insert into public.attendance (org_id, project_id, worker_id, date, days, ot_hours)
+  select org, p_santos, w.id, d::date,
+         case when w.name = 'Dodong Ramos' and extract(dow from d) = 6 then 0.5 else 1 end,
+         case when w.position in ('Mason', 'Steelman') and extract(dow from d) = 3 then 2 else 0 end
+  from public.workers w
+  cross join generate_series(current_date - 6, current_date - 1, interval '1 day') d
+  where w.org_id = org and extract(dow from d) <> 0;
+  insert into public.daily_logs (org_id, project_id, date, weather, work_done, issues) values
+    (org, p_santos, current_date - 1, 'Sunny', 'Formworks for 2F slab, grid B–D. Rebar tying for beams.', null),
+    (org, p_santos, current_date - 2, 'Rain after 2pm', 'CHB laying, east wall 1F (about 60 sq.m).', 'Stopped 2pm–4pm due to rain.');
+
   -- A staff member who joined through an invitation link
   insert into public.invitations (org_id, email, role, invited_by, token)
     values (org, 'staff@constructai.test', 'member', uid, '33333333-3333-4333-8333-333333333333');

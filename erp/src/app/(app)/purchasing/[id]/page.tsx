@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { deletePurchaseOrder, payPurchaseOrder, setPoStatus, unpayPurchaseOrder } from "@/app/actions/purchasing";
 import { PoStatusBadge } from "@/components/badges";
+import { DocumentCard, Letterhead, SignatureLines } from "@/components/document";
 import { PrintButton } from "@/components/print-button";
 import { ActionForm, SubmitButton } from "@/components/forms";
 import { Card, CardHeader, Field, Input, LinkButton, PageHeader } from "@/components/ui";
 import { EXPENSE_CATEGORIES, labelOf } from "@/lib/constants";
 import { fmtDate, php, phpExact, todayISO } from "@/lib/format";
 import { getSession } from "@/lib/org";
-import type { PurchaseOrderItem, PurchaseOrderSummary, Supplier } from "@/lib/types";
+import type { Organization, PurchaseOrderItem, PurchaseOrderSummary, Supplier } from "@/lib/types";
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
@@ -21,18 +22,20 @@ const qtyFmt = new Intl.NumberFormat("en-PH", { maximumFractionDigits: 3 });
 
 export default async function PoPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { supabase, orgId, orgName, isOwner } = await getSession();
+  const { supabase, orgId, isOwner } = await getSession();
 
   const { data: row } = await supabase.from("purchase_order_summary").select("*").eq("id", id).eq("org_id", orgId).maybeSingle();
   if (!row) notFound();
   const po = row as PurchaseOrderSummary;
 
-  const [{ data: itemRows }, { data: supplier }, { data: project }, { data: boq }] = await Promise.all([
+  const [{ data: itemRows }, { data: supplier }, { data: project }, { data: boq }, { data: orgRow }] = await Promise.all([
     supabase.from("purchase_order_items").select("*").eq("purchase_order_id", id).order("sort_order"),
     supabase.from("suppliers").select("*").eq("id", po.supplier_id).maybeSingle(),
     supabase.from("projects").select("id, name, location, client_name").eq("id", po.project_id).maybeSingle(),
     po.boq_item_id ? supabase.from("boq_items").select("item_no, description").eq("id", po.boq_item_id).maybeSingle() : Promise.resolve({ data: null }),
+    supabase.from("organizations").select("*").eq("id", orgId).maybeSingle(),
   ]);
+  const org = orgRow as Organization | null;
   const items = (itemRows ?? []) as PurchaseOrderItem[];
   const s = supplier as Supplier | null;
   const paid = Boolean(po.expense_id);
@@ -122,25 +125,16 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
       </div>
 
       {/* The purchase order document — this is what prints. */}
-      <Card className="p-5 sm:p-8 print:border-0 print:p-0 print:shadow-none">
-        <div className="flex flex-wrap items-start justify-between gap-4 border-b border-line pb-5">
-          <div>
-            <p className="text-lg font-semibold text-ink">{orgName}</p>
-            <p className="text-sm text-muted">Purchase order</p>
-          </div>
-          <dl className="grid grid-cols-[auto_auto] gap-x-4 gap-y-0.5 text-sm">
-            <dt className="text-muted">PO no.</dt>
-            <dd className="font-semibold text-ink">{po.po_number}</dd>
-            <dt className="text-muted">Date</dt>
-            <dd className="text-ink">{fmtDate(po.order_date)}</dd>
-            {po.expected_date && (
-              <>
-                <dt className="text-muted">Deliver by</dt>
-                <dd className="text-ink">{fmtDate(po.expected_date)}</dd>
-              </>
-            )}
-          </dl>
-        </div>
+      <DocumentCard>
+        <Letterhead
+          org={org}
+          title="Purchase order"
+          meta={[
+            ["PO no.", po.po_number],
+            ["Date", fmtDate(po.order_date)],
+            ...(po.expected_date ? ([["Deliver by", fmtDate(po.expected_date)]] as [string, string][]) : []),
+          ]}
+        />
 
         <div className="grid gap-5 border-b border-line py-5 sm:grid-cols-2">
           <div>
@@ -207,15 +201,8 @@ export default async function PoPage({ params }: { params: Promise<{ id: string 
           </div>
         )}
 
-        <div className="mt-12 grid gap-10 text-sm sm:grid-cols-2">
-          {["Prepared by", "Approved by"].map((l) => (
-            <div key={l}>
-              <div className="h-8 border-b border-ink/40" />
-              <p className="mt-1 text-muted">{l}</p>
-            </div>
-          ))}
-        </div>
-      </Card>
+        <SignatureLines labels={["Prepared by", "Approved by"]} />
+      </DocumentCard>
     </>
   );
 }

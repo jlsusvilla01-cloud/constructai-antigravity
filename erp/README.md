@@ -31,6 +31,16 @@ Live: https://constructai-erp.vercel.app (Vercel project `constructai-erp`, Supa
   and delivered unpaid POs count as **committed cost** (used in projected profit); delivered
   unpaid POs are **payables** to suppliers. A paid PO's items are locked; an owner can undo the
   payment (removes the cost).
+- **Printable documents** (Print / PDF button): progress billing statement (contract, work
+  accomplished to date, less previous billings, retention and recoupment, amount due in words),
+  acknowledgment receipt for each payment (clearly marked *not* a BIR official receipt),
+  purchase orders and payroll sheets. Company address, TIN, phone and email for the letterhead
+  are set on the Company & team page.
+- **Labor** — workers with daily rates; a **Site log** tab per project for daily attendance
+  (full / half day, overtime at 125% of the hourly rate) and the site diary (weather, work done,
+  issues). **Payroll** pays a project's logged days for a period (default Mon–Sat), records the
+  total as a labor cost and prints a payroll sheet with a signature column. Paid days are locked;
+  an owner can undo a payroll. Logged-but-unpaid labor counts toward expected final cost.
 - **Team** (Company & team page) — invite people by link (send it by Viber / Messenger / SMS;
   no email needed). They sign up with the invited email and join your company.
   - *Owner*: everything, plus manage the team, rename the company, delete records.
@@ -70,21 +80,22 @@ progress billings with retention / downpayment recoupment, and purchase orders.
 
 Reset the local database (re-runs migrations + seed): `npx supabase db reset`.
 
-Database checks (roles, invitations, billing maths, purchasing), local only:
+Database checks (roles, invitations, billing maths, purchasing, labor), local only:
 
 ```bash
-PGPASSWORD=postgres psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -X -A -t -f supabase/tests/checks.sql
+bash scripts/db-checks.sh
 ```
 
-Every `T…` / `P…` line should end in `t`.
+GitHub Actions (`.github/workflows/erp.yml`) runs type-check, lint, build and these database
+checks on every pull request that touches `erp/`.
 
 ## Put it online
 
 1. Create a **new** Supabase project at supabase.com (the old ConstructAI project has tables
    with the same names and a different shape).
 2. Open SQL Editor → paste and run each file in `supabase/migrations/`, in name order
-   (`…_core.sql`, then `…_team.sql`, then `…_contractor_features.sql`). On an existing
-   project, run only the ones not applied yet.
+   (`…_core.sql`, `…_team.sql`, `…_contractor_features.sql`, `…_company_and_labor.sql`).
+   On an existing project, run only the ones not applied yet.
    Do **not** run `seed.sql` there — it's demo data for local use only.
 3. Authentication → URL Configuration: set Site URL to your Vercel domain.
 4. In Vercel, import the repo with **Root Directory = `erp`** and add the two environment
@@ -105,5 +116,13 @@ Every `T…` / `P…` line should end in `t`.
 | `src/app/(app)/settings` | Company & team: members, roles, invitation links, switch company |
 | `src/app/(auth)/invite/[token]` | Accept an invitation (sign up or log in) |
 | `src/lib/metrics.ts` | Profit formulas |
+| `src/app/(app)/labor` | Workers, payroll runs (new / printable sheet) |
+| `src/app/(app)/billings/[id]` | Printable billing statement and payment receipts |
 | `src/lib/billing.ts` | Progress billing / retention / recoupment maths |
 | `supabase/tests/checks.sql` | Database checks (run locally with psql) |
+
+## Keeping the free Supabase project awake
+
+Free Supabase projects pause after about a week without activity. `vercel.json` schedules a
+daily Vercel cron that calls `/api/keepalive`, which makes one tiny database read. Optional:
+set a `CRON_SECRET` environment variable in Vercel so only Vercel's cron can call it.
