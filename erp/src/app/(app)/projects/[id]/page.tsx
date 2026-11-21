@@ -6,6 +6,7 @@ import { BillingForm } from "@/components/billing-form";
 import { BoqPanel } from "@/components/boq";
 import { BreakdownBars } from "@/components/breakdown";
 import { PoList } from "@/components/purchasing";
+import { SiteLogPanel, type DaySummary } from "@/components/site-log";
 import {
   AddPanel,
   BillingList,
@@ -17,10 +18,21 @@ import {
 import { Card, CardHeader, LinkButton, Meter, PageHeader, Stat, cx } from "@/components/ui";
 import { toBillingProject } from "@/lib/billing";
 import { EXPENSE_CATEGORIES, labelOf } from "@/lib/constants";
-import { fmtDate, php, pct, toNum } from "@/lib/format";
+import { fmtDate, php, pct, toNum, todayISO } from "@/lib/format";
 import { projectMetrics } from "@/lib/metrics";
 import { getSession } from "@/lib/org";
-import type { BillingSummary, BoqItem, ChangeOrder, Expense, Payment, ProjectSummary, PurchaseOrderSummary } from "@/lib/types";
+import type {
+  Attendance,
+  BillingSummary,
+  BoqItem,
+  ChangeOrder,
+  DailyLog,
+  Expense,
+  Payment,
+  ProjectSummary,
+  PurchaseOrderSummary,
+  Worker,
+} from "@/lib/types";
 
 const TABS = [
   { id: "overview", label: "Overview" },
@@ -29,6 +41,7 @@ const TABS = [
   { id: "changes", label: "Change orders" },
   { id: "boq", label: "BOQ" },
   { id: "purchases", label: "Purchases" },
+  { id: "log", label: "Site log" },
 ] as const;
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
@@ -43,10 +56,11 @@ export default async function ProjectPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ tab?: string; edit?: string }>;
+  searchParams: Promise<{ tab?: string; edit?: string; date?: string }>;
 }) {
   const { id } = await params;
-  const { tab: rawTab, edit } = await searchParams;
+  const { tab: rawTab, edit, date: rawDate } = await searchParams;
+  const logDate = rawDate && /^\d{4}-\d{2}-\d{2}$/.test(rawDate) ? rawDate : todayISO();
   const tab = TABS.some((t) => t.id === rawTab) ? rawTab! : "overview";
   const { supabase, orgId, isOwner } = await getSession();
 
@@ -79,6 +93,47 @@ export default async function ProjectPage({
   const unassigned = exp.filter((e) => !e.boq_item_id).reduce((s, e) => s + toNum(e.amount), 0);
   const boqOptions = boq.map((b) => ({ id: b.id, label: [b.item_no, b.description].filter(Boolean).join(" ") }));
   const boqNames = new Map(boqOptions.map((b) => [b.id, b.label]));
+
+  // Site log tab: the chosen day, plus a summary of recent days.
+  let siteLog: React.ReactNode = null;
+  if (tab === "log") {
+    const since = new Date(`${logDate}T00:00:00Z`);
+    since.setUTCDate(since.getUTCDate() - 30);
+    const sinceIso = since.toISOString().slice(0, 10);
+    const [{ data: workerRows }, { data: dayRows }, { data: logRow }, { data: recentRows }, { data: recentLogs }] = await Promise.all([
+      supabase.from("workers").select("*").eq("org_id", orgId).order("name"),
+      supabase.from("attendance").select("*").eq("project_id", id).eq("date", logDate),
+      supabase.from("daily_logs").select("*").eq("project_id", id).eq("date", logDate).maybeSingle(),
+      supabase.from("attendance").select("date, amount").eq("project_id", id).gte("date", sinceIso).order("date", { ascending: false }),
+      supabase.from("daily_logs").select("date").eq("project_id", id).gte("date", sinceIso),
+    ]);
+    const day = (dayRows ?? []) as Attendance[];
+    const onDay = new Set(day.map((a) => a.worker_id));
+    const allWorkers = (workerRows ?? []) as Worker[];
+    const days = new Map<string, DaySummary>();
+    for (const r of recentRows ?? []) {
+      const d = days.get(r.date) ?? { date: r.date, workers: 0, amount: 0, hasNotes: false };
+      d.workers++;
+      d.amount += toNum(r.amount);
+      days.set(r.date, d);
+    }
+    for (const l of recentLogs ?? []) {
+      const d = days.get(l.date) ?? { date: l.date, workers: 0, amount: 0, hasNotes: false };
+      d.hasNotes = true;
+      days.set(l.date, d);
+    }
+    siteLog = (
+      <SiteLogPanel
+        projectId={id}
+        date={logDate}
+        workers={allWorkers.filter((w) => w.active || onDay.has(w.id))}
+        attendance={day}
+        log={(logRow ?? null) as DailyLog | null}
+        recent={[...days.values()].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 14)}
+        unpaidLabor={m.unpaidLabor}
+      />
+    );
+  }
 
   const billingIds = bills.map((b) => b.id);
   const { data: payments } = billingIds.length
@@ -134,7 +189,8 @@ export default async function ProjectPage({
           sub={
             <>
               {m.budget > 0 ? `${pct(m.budgetUsed, 0)} of ${php(m.budget)} budget` : "No budget set"}
-              {m.committed > 0 && <span className="block">+ {php(m.committed)} on open POs</span>}
+              {m.committedPo > 0 && <span className="block">+ {php(m.committedPo)} on open POs</span>}
+              {m.unpaidLabor > 0 && <span className="block">+ {php(m.unpaidLabor)} labor not yet in payroll</span>}
             </>
           }
         />
@@ -183,10 +239,10 @@ export default async function ProjectPage({
                   hint={
                     p.status === "completed"
                       ? m.committed > 0
-                        ? "Actual cost recorded, plus unpaid purchase orders."
+                        ? "Actual cost recorded, plus unpaid purchase orders and labor."
                         : "Actual cost recorded."
                       : m.overBudget || m.committedOverBudget
-                        ? "Spending (incl. open purchase orders) is past the budget, so that is used."
+                        ? "Spending (incl. open purchase orders and unpaid labor) is past the budget, so that is used."
                         : "Your cost budget."
                   }
                 />
@@ -354,11 +410,13 @@ export default async function ProjectPage({
           />
         )}
 
+        {tab === "log" && siteLog}
+
         {tab === "purchases" && (
           <Card>
             <CardHeader
               title="Purchase orders"
-              sub={`${pos.length} POs · ${php(m.committed)} committed, not yet paid${m.payable > 0 ? ` · ${php(m.payable)} delivered & unpaid` : ""}`}
+              sub={`${pos.length} POs · ${php(m.committedPo)} committed, not yet paid${m.payable > 0 ? ` · ${php(m.payable)} delivered & unpaid` : ""}`}
               action={
                 <LinkButton href={`/purchasing/new?project=${id}`} className="px-3 py-1.5 text-xs">
                   + New PO

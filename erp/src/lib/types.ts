@@ -33,6 +33,8 @@ export type ProjectSummary = Project & {
   boq_total: number;
   committed_cost: number;
   payable: number;
+  /** Site log labor not yet in a recorded payroll. */
+  unpaid_labor: number;
 };
 
 export type ExpenseCategory =
@@ -164,6 +166,58 @@ export type PurchaseOrderItem = {
   unit_cost: number;
   amount: number;
   sort_order: number;
+};
+
+export type Organization = {
+  id: string;
+  name: string;
+  address: string | null;
+  tin: string | null;
+  phone: string | null;
+  email: string | null;
+};
+
+export type Worker = {
+  id: string;
+  org_id: string;
+  name: string;
+  position: string | null;
+  daily_rate: number;
+  phone: string | null;
+  active: boolean;
+};
+
+export type Attendance = {
+  id: string;
+  project_id: string;
+  worker_id: string;
+  date: string;
+  days: number;
+  ot_hours: number;
+  daily_rate: number;
+  amount: number;
+  payroll_run_id: string | null;
+};
+
+export type DailyLog = {
+  id: string;
+  project_id: string;
+  date: string;
+  weather: string | null;
+  work_done: string | null;
+  issues: string | null;
+};
+
+export type PayrollRun = {
+  id: string;
+  org_id: string;
+  project_id: string;
+  period_start: string;
+  period_end: string;
+  total: number;
+  worker_count: number;
+  expense_id: string | null;
+  created_at: string;
 };
 
 export type ActionState = { error?: string; ok?: boolean; at?: number };

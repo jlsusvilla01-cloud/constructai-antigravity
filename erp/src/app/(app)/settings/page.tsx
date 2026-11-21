@@ -6,7 +6,7 @@ import { ActionForm, DeleteButton, SubmitButton } from "@/components/forms";
 import { Badge, Card, CardHeader, Field, Input, PageHeader, Select } from "@/components/ui";
 import { fmtDate } from "@/lib/format";
 import { getSession } from "@/lib/org";
-import type { Role } from "@/lib/types";
+import type { Organization, Role } from "@/lib/types";
 
 export const metadata: Metadata = { title: "Company & team" };
 
@@ -18,12 +18,14 @@ const ROLE_LABEL: Record<Role, string> = { owner: "Owner", member: "Staff" };
 export default async function SettingsPage() {
   const { supabase, orgId, orgName, isOwner, user, orgs } = await getSession();
 
-  const [{ data: memberRows }, { data: inviteRows }] = await Promise.all([
+  const [{ data: memberRows }, { data: inviteRows }, { data: orgRow }] = await Promise.all([
     supabase.rpc("org_members", { target_org: orgId }),
     isOwner
       ? supabase.from("invitations").select("id, email, role, token, created_at").eq("org_id", orgId).is("accepted_at", null).order("created_at")
       : Promise.resolve({ data: [] }),
+    supabase.from("organizations").select("*").eq("id", orgId).maybeSingle(),
   ]);
+  const org = orgRow as Organization | null;
   const members = (memberRows ?? []) as Member[];
   const invites = (inviteRows ?? []) as Invitation[];
   const ownerCount = members.filter((m) => m.role === "owner").length;
@@ -137,19 +139,36 @@ export default async function SettingsPage() {
 
         <div className="space-y-4 lg:col-span-2">
           <Card>
-            <CardHeader title="Company" />
+            <CardHeader title="Company details" />
             <div className="p-4 sm:p-5">
               {isOwner ? (
-                <ActionForm action={renameCompany} resetOnSuccess={false}>
+                <ActionForm action={renameCompany} resetOnSuccess={false} className="space-y-3">
                   <Field label="Company name">
                     <Input name="name" defaultValue={orgName} required />
                   </Field>
-                  <div className="mt-3 flex justify-end">
+                  <Field label="Address" hint="Shown on billing statements, receipts and purchase orders.">
+                    <Input name="address" defaultValue={org?.address ?? ""} placeholder="123 Rizal St., Iloilo City" />
+                  </Field>
+                  <Field label="TIN">
+                    <Input name="tin" defaultValue={org?.tin ?? ""} placeholder="000-000-000-000" />
+                  </Field>
+                  <Field label="Phone">
+                    <Input name="phone" defaultValue={org?.phone ?? ""} placeholder="0917 123 4567" />
+                  </Field>
+                  <Field label="Email">
+                    <Input name="email" type="email" defaultValue={org?.email ?? ""} />
+                  </Field>
+                  <div className="flex justify-end">
                     <SubmitButton variant="secondary">Save</SubmitButton>
                   </div>
                 </ActionForm>
               ) : (
-                <p className="text-sm text-ink">{orgName}</p>
+                <div className="text-sm text-ink">
+                  <p>{orgName}</p>
+                  {[org?.address, org?.tin && `TIN ${org.tin}`, org?.phone, org?.email].filter(Boolean).map((l) => (
+                    <p key={String(l)} className="text-muted">{l}</p>
+                  ))}
+                </div>
               )}
             </div>
           </Card>

@@ -8,8 +8,11 @@ export function projectMetrics(p: ProjectSummary) {
   const budget = toNum(p.budget);
   const billed = toNum(p.billed);
   const collected = toNum(p.collected);
-  // Open purchase orders (ordered or delivered, not yet paid) will become cost.
-  const committed = toNum(p.committed_cost);
+  // Open purchase orders (ordered or delivered, not yet paid) and site log labor not
+  // yet in a payroll will become cost.
+  const committedPo = toNum(p.committed_cost);
+  const unpaidLabor = toNum(p.unpaid_labor);
+  const committed = committedPo + unpaidLabor;
   const costWithCommitted = cost + committed;
 
   // If spending (incl. what's already ordered) exceeds the budget, the budget is no
@@ -33,6 +36,8 @@ export function projectMetrics(p: ProjectSummary) {
     receivable: toNum(p.receivable),
     overdue: toNum(p.overdue),
     committed,
+    committedPo,
+    unpaidLabor,
     payable: toNum(p.payable),
     boqTotal: toNum(p.boq_total),
     percentComplete: toNum(p.percent_complete),

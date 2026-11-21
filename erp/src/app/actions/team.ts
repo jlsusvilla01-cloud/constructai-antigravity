@@ -18,10 +18,14 @@ export async function switchOrg(orgId: string) {
 
 export async function renameCompany(_: ActionState, fd: FormData): Promise<ActionState> {
   const { supabase, orgId, isOwner } = await getSession();
-  if (!isOwner) return fail("Only an owner can rename the company.");
+  if (!isOwner) return fail("Only an owner can change company details.");
   const name = str(fd, "name");
   if (!name) return fail("Enter the company name.");
-  const { error } = await supabase.from("organizations").update({ name }).eq("id", orgId);
+  const opt = (k: string) => str(fd, k) || null;
+  const { error } = await supabase
+    .from("organizations")
+    .update({ name, address: opt("address"), tin: opt("tin"), phone: opt("phone"), email: opt("email") })
+    .eq("id", orgId);
   if (error) return fail("Couldn’t save. " + dbMessage(error));
   refresh();
   return ok();

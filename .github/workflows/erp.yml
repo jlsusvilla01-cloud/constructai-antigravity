@@ -1,0 +1,54 @@
+name: ERP checks
+
+on:
+  pull_request:
+    paths: ["erp/**", ".github/workflows/erp.yml"]
+  push:
+    branches: [main, rebuild-core]
+    paths: ["erp/**", ".github/workflows/erp.yml"]
+
+concurrency:
+  group: erp-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: erp
+
+jobs:
+  app:
+    name: Type-check, lint, build
+    runs-on: ubuntu-latest
+    env:
+      # Build only; no real project is contacted.
+      NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ci-placeholder
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: erp/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+      - run: npm run lint
+      - run: npm run build
+
+  database:
+    name: Migrations + database checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: erp/package-lock.json
+      - run: npm ci
+      # Database, auth and API only — the checks don't need the other services.
+      - run: npx supabase start -x studio,imgproxy,edge-runtime,logflare,vector,supavisor,realtime,storage-api,postgres-meta,mailpit
+      - run: bash scripts/db-checks.sh
+      - if: always()
+        run: npx supabase stop --no-backup
