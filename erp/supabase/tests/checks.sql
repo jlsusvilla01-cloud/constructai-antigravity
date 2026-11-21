@@ -99,7 +99,11 @@ select 'T18 net mismatch rejected (error above expected)' as t, true as pass;
 insert into billings (org_id, project_id, description, amount, gross_amount, retention_amount, recoupment_amount, kind, percent_complete) values (:'org', :'proj', 'PB1', 800, 1000, 100, 100, 'progress', 30);
 insert into billings (org_id, project_id, description, amount) values (:'org', :'proj', 'plain', 500);
 select 'T19 plain billing gross=amount' as t, gross_amount = 500 as pass from billings where description='plain';
-select 'T20 summary retention' as t, retention_held = 100 and downpayment_recouped = 100 and percent_complete = 30 and progress_billed_gross = 1000 as pass from project_summary where id=:'proj';
+-- Work already billed counts fixed-amount ("other") billings too (1000 progress + 500 plain),
+-- so a later progress billing can't charge that work again.
+select 'T20 summary retention' as t, retention_held = 100 and downpayment_recouped = 100 and percent_complete = 30 and progress_billed_gross = 1500 as pass from project_summary where id=:'proj';
+insert into billings (org_id, project_id, description, amount, kind) values (:'org', :'proj', 'DP', 200, 'downpayment');
+select 'T20b downpayment not counted as work billed' as t, progress_billed_gross = 1500 and downpayment_billed = 200 as pass from project_summary where id=:'proj';
 
 -- Purchasing
 insert into suppliers (org_id, name) values (:'org', 'Check Supplier') returning id as sup \gset

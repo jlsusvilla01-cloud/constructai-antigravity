@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { addBilling } from "@/app/actions/data";
-import { computeProgressBilling, downpaymentDue } from "@/lib/billing";
+import { billedPctOfContract, computeProgressBilling, downpaymentDue } from "@/lib/billing";
 import { php, phpExact, todayISO } from "@/lib/format";
 import type { BillingKind } from "@/lib/types";
 import { ActionForm, SubmitButton } from "./forms";
@@ -92,13 +92,25 @@ export function BillingForm({ projects, fixedProjectId }: { projects: BillingPro
           <>
             <Field
               label="Work accomplished to date (%)"
-              hint={p ? `Last billing: ${p.prevPct}% complete.` : undefined}
+              hint={
+                !p
+                  ? undefined
+                  : p.prevPct > 0
+                    ? `Last progress billing: ${p.prevPct}% complete.`
+                    : p.prevGross > 0
+                      ? `Earlier billings cover ${billedPctOfContract(p.prevGross, p.revisedContract)}% of the contract.`
+                      : "No work billed yet."
+              }
               className="sm:col-span-2"
             >
               <Input
                 name="percent_complete"
                 inputMode="decimal"
-                placeholder={p ? String(Math.min(p.prevPct + 20, 100)) : "35"}
+                placeholder={
+                  p
+                    ? String(Math.min(Math.ceil(Math.max(p.prevPct, billedPctOfContract(p.prevGross, p.revisedContract))) + 20, 100))
+                    : "35"
+                }
                 value={pct}
                 onChange={(e) => setPct(e.target.value)}
                 required
@@ -185,7 +197,7 @@ function ProgressPreview({
 
   const rows: [string, number, boolean?][] = [
     ["Work accomplished to date", preview.grossToDate],
-    ["Less previous progress billings", -p.prevGross],
+    ["Less work already billed", -p.prevGross],
     ["This billing (gross)", preview.gross, true],
     [`Less retention (${p.retentionPct}%)`, -preview.retention],
     ["Less downpayment recoupment", -preview.recoupment],

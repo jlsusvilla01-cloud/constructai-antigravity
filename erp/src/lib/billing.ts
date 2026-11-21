@@ -20,7 +20,7 @@ export type ProgressInput = {
   /** Downpayment billed so far, and how much of it has been recouped. */
   downpaymentBilled: number;
   downpaymentRecouped: number;
-  /** Gross of progress billings so far and the % complete they reached. */
+  /** Gross of work billed so far (progress + fixed-amount billings) and the % complete of the last progress billing. */
   prevGross: number;
   prevPct: number;
   /** Cumulative % complete as of this billing. */
@@ -40,7 +40,9 @@ export function computeProgressBilling(i: ProgressInput): ProgressResult {
 
   const grossToDate = round2((i.revisedContract * pct) / 100);
   const gross = round2(grossToDate - i.prevGross);
-  if (gross <= 0) return { error: "Nothing new to bill at that percentage." };
+  if (gross <= 0) {
+    return { error: `Nothing new to bill: earlier billings already cover ${billedPctOfContract(i.prevGross, i.revisedContract)}% of the contract.` };
+  }
 
   const retention = round2((gross * Math.max(i.retentionPct, 0)) / 100);
   const dpLeft = Math.max(round2(i.downpaymentBilled - i.downpaymentRecouped), 0);
@@ -50,6 +52,11 @@ export function computeProgressBilling(i: ProgressInput): ProgressResult {
   if (net <= 0) return { error: "After retention and recoupment there’s nothing left to bill." };
 
   return { gross, retention, recoupment, net, grossToDate };
+}
+
+/** Share of the contract already billed as work (for hints), rounded to 0.1%. */
+export function billedPctOfContract(prevGross: number, revisedContract: number) {
+  return revisedContract > 0 ? Math.round((prevGross / revisedContract) * 1000) / 10 : 0;
 }
 
 /** Downpayment still to bill: contract × downpayment % − already billed. */

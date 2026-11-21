@@ -458,7 +458,10 @@ left join (
          sum(amount) as billed,
          sum(paid) as collected,
          sum(case when status = 'overdue' then balance else 0 end) as overdue,
-         sum(case when kind = 'progress' then gross_amount else 0 end) as progress_gross,
+         -- Work already billed: progress billings plus fixed-amount ("other") billings,
+         -- e.g. billings entered before progress billing existed. Without the latter,
+         -- the first progress billing would charge that work to the client again.
+         sum(case when kind in ('progress', 'other') then gross_amount else 0 end) as progress_gross,
          max(case when kind = 'progress' then percent_complete end) as percent_complete,
          sum(case when kind = 'downpayment' then gross_amount else 0 end) as downpayment_billed,
          sum(recoupment_amount) as recouped,
