@@ -2,6 +2,7 @@ import Link from "next/link";
 import { logout } from "@/app/actions/auth";
 import { Logo } from "@/components/logo";
 import { BottomNav, SideNav } from "@/components/nav";
+import { DEMO_MODE } from "@/lib/demo/mode";
 import { getSession } from "@/lib/org";
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
@@ -32,7 +33,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
             </Link>
             <form action={logout}>
               <button type="submit" className="text-muted hover:text-ink">
-                Log out
+                {DEMO_MODE ? "Exit demo" : "Log out"}
               </button>
             </form>
           </div>
@@ -47,11 +48,20 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         </Link>
         <form action={logout}>
           <button type="submit" className="text-xs text-muted hover:text-ink">
-            Log out
+            {DEMO_MODE ? "Exit demo" : "Log out"}
           </button>
         </form>
       </header>
 
+      {DEMO_MODE && (
+        <div className="border-b border-brand/15 bg-brand-soft px-4 py-2 text-center text-xs text-brand-strong sm:text-sm print:hidden">
+          <span className="font-semibold">Demo</span> · a sample contractor with made-up projects. Look around freely, changes
+          aren’t saved.{" "}
+          <Link href="/" className="whitespace-nowrap font-medium underline underline-offset-2">
+            About ConstructAI
+          </Link>
+        </div>
+      )}
       <main className="mx-auto max-w-6xl px-4 pb-24 pt-6 sm:px-6 lg:px-8 lg:pb-12 lg:pt-8 print:max-w-none print:p-0">{children}</main>
       <BottomNav />
     </div>
