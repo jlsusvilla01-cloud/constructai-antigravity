@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Image from "next/image";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import localFont from "next/font/local";
 import type { CSSProperties, ReactNode } from "react";
 import { CallingCard } from "@/components/landing/calling-card";
 import { Accent, Chip, Deck, Eyebrow, Slide, type SlideMeta } from "@/components/landing/deck";
@@ -8,7 +8,13 @@ import { DemoForm } from "@/components/landing/demo-form";
 
 // Static presentation page — no backend, no database calls.
 
-const jakarta = Plus_Jakarta_Sans({ subsets: ["latin"], variable: "--font-jakarta", weight: ["400", "500", "600", "700", "800"] });
+// Bundled with the app (variable font, OFL) so builds never depend on Google Fonts being reachable.
+const jakarta = localFont({
+  src: "../fonts/plus-jakarta-sans-latin-wght-normal.woff2",
+  variable: "--font-jakarta",
+  weight: "200 800",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { absolute: "ConstructAI — Project costs, billings and profit for Philippine contractors" },
