@@ -23,8 +23,9 @@ export function Deck({ slides, header, children }: { slides: SlideMeta[]; header
   );
 
   useEffect(() => {
-    const root = ref.current;
-    if (!root) return;
+    // The page itself scrolls (like Balay): each slide snaps into place on the window.
+    const html = document.documentElement;
+    html.classList.add("deck-snap");
     setReady(true);
     const els = slides.map((s) => document.getElementById(s.id)).filter(Boolean) as HTMLElement[];
     const io = new IntersectionObserver(
@@ -36,7 +37,7 @@ export function Deck({ slides, header, children }: { slides: SlideMeta[]; header
           }
         }
       },
-      { root, threshold: [0.25, 0.5] },
+      { threshold: [0.25, 0.5] },
     );
     els.forEach((el) => io.observe(el));
 
@@ -63,6 +64,7 @@ export function Deck({ slides, header, children }: { slides: SlideMeta[]; header
     return () => {
       io.disconnect();
       window.removeEventListener("keydown", onKey);
+      html.classList.remove("deck-snap");
     };
   }, [slides, go]);
 
@@ -74,7 +76,7 @@ export function Deck({ slides, header, children }: { slides: SlideMeta[]; header
   const pad = (n: number) => String(n).padStart(2, "0");
 
   return (
-    <div ref={ref} data-deck={ready ? "ready" : undefined} data-tone={dark ? "dark" : "light"} className="deck h-dvh overflow-y-auto overflow-x-hidden scroll-smooth lg:snap-y lg:snap-mandatory">
+    <div ref={ref} data-deck={ready ? "ready" : undefined} data-tone={dark ? "dark" : "light"} className="deck overflow-x-clip">
       {/* Progress bar */}
       <div className="pointer-events-none fixed inset-x-0 top-0 z-50 h-[3px]">
         <div

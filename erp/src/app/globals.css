@@ -53,6 +53,10 @@ summary {
 }
 
 /* ─── Landing presentation ─────────────────────────────────────────────── */
+html.deck-snap {
+  scroll-snap-type: y proximity;
+  scroll-behavior: smooth;
+}
 .deck {
   font-family: var(--font-jakarta), ui-sans-serif, system-ui, sans-serif;
 }
@@ -81,7 +85,7 @@ summary {
     transform: none;
     transition: none;
   }
-  .deck {
+  html.deck-snap {
     scroll-behavior: auto;
   }
 }
