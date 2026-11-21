@@ -4,7 +4,24 @@ Projects, costs, billings and profit for Philippine contractors.
 Next.js (App Router) + Supabase (Postgres, Auth) — deploys to Vercel.
 
 Live: https://constructai-erp.vercel.app (Vercel project `constructai-erp`, Supabase project
-"ConstructAI ERP", Singapore). Redeploy with `npx vercel deploy --prod` from this folder.
+"ConstructAI ERP", Singapore). The Vercel project's Root Directory is `erp`, so deploy from the
+**repository root**, pointing the CLI at this project (the root's own `.vercel` link belongs to the
+old site):
+
+```bash
+VERCEL_ORG_ID=team_IAiuKQ3uUKwgiz3S8llumd2r VERCEL_PROJECT_ID=prj_DLQxm0fPP67HPYfSJssC1QRkEBuc npx vercel deploy --prod --yes
+```
+
+### Demo mode
+
+With `NEXT_PUBLIC_DEMO_MODE=1` (a build-time setting) the whole site runs read-only on a built-in
+demo company (`src/lib/demo/snapshot.json`): no login, no database, and saving shows "changes aren't
+saved". The landing page at `/` then offers "Try the demo" instead of sign-up/log-in.
+
+- Refresh the demo data after changing `supabase/seed.sql`: `npx supabase db reset`, then
+  `sh scripts/demo-snapshot.sh`.
+- Back to the real app: remove `NEXT_PUBLIC_DEMO_MODE` in Vercel (Settings → Environment
+  Variables) and redeploy. The Supabase project must be active, with all migrations applied.
 
 ## What it does
 
