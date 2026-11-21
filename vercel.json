@@ -1,4 +1,9 @@
 {
   "buildCommand": null,
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "redirects": [
+    { "source": "/erp", "destination": "/", "permanent": false },
+    { "source": "/erp/:path*", "destination": "/", "permanent": false },
+    { "source": "/.github/:path*", "destination": "/", "permanent": false }
+  ]
 }

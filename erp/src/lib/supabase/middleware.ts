@@ -3,7 +3,16 @@ import { NextResponse, type NextRequest } from "next/server";
 
 const PUBLIC_PATHS = ["/login", "/signup", "/auth", "/invite", "/api/keepalive"];
 
+// The landing page and its files are fully static: no Supabase call at all, so they
+// work even when there's no database (or it's paused).
+const STATIC_PATHS = ["/maker/"];
+
 export async function updateSession(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  if (pathname === "/" || STATIC_PATHS.some((p) => pathname.startsWith(p))) {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
