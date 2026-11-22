@@ -1,8 +1,14 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
+// Bundled with the app (variable font, OFL) so builds never depend on Google Fonts being reachable.
+const inter = localFont({
+  src: "../fonts/inter-latin-wght-normal.woff2",
+  variable: "--font-inter",
+  weight: "100 900",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: { default: "ConstructAI", template: "%s · ConstructAI" },
